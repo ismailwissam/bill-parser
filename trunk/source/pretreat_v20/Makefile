@@ -1,6 +1,6 @@
 # Makefile for pretreat
 
-TARGET = pretreat
+TARGET = ../../release/pretreat
 SRCS = $(wildcard ./*.c) 
 OBJECTS = $(SRCS:%.c=%.o)
 

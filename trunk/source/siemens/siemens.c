@@ -95,6 +95,7 @@ int siemens(char * in_file_name, char * out_file_name, int * rec_num);
 
 //------------------------------------------------------------------------------------------------
 //--main for test
+/*
 int main(int argc,char * argv[])
 {
 	int rec_num;
@@ -106,6 +107,7 @@ int main(int argc,char * argv[])
 	
 	return 0;
 }
+*/
 //------------------------------------------------------------------------------------------------
 
 static void err_log(char * format,...)

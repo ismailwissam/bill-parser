@@ -2,7 +2,7 @@
 
 cp ../config.h ./
 
-../../asn1c/asn1c/asn1c ../siemens.asn1 || exit $?
+../../../helper/asn1c/asn1c/asn1c ../siemens.asn1 || exit $?
 
 if [ ! -f Makefile.am.sample ]; then
 	echo "Makefile.am.sample is missing"
@@ -11,9 +11,10 @@ fi
 
 set -x
 cat Makefile.am.sample						\
-	| sed -e 's/^CFLAGS.*/CFLAGS += -I. -I..\/ -I..\/..\/asn1c\/skeletons -I..\/..\/asn1c\/libasn1compiler -I..\/..\/asn1c\/libasn1fix -I..\/..\/asn1c\/libasn1parser -I..\/..\/asn1c\/libasn1print -DHAVE_CONFIG_H -DPDU=Sr9Siemens/'	\
+	| sed -e 's/^CFLAGS.*/CFLAGS += -I. -I..\/ -I..\/..\/..\/helper\/asn1c\/skeletons -I..\/..\/..\/helper\/asn1c\/libasn1compiler -I..\/..\/..\/helper\/asn1c\/libasn1fix -I..\/..\/..\/helper\/asn1c\/libasn1parser -I..\/..\/..\/helper\/asn1c\/libasn1print -DHAVE_CONFIG_H -DPDU=Sr9Siemens/'	\
 	| sed -e 's/converter-sample/..\/siemens/'				\
-	| sed -e 's/progname/..\/siemens/'				\
+	| sed -e 's/progname/..\/..\/..\/release\/siemens.so/'				\
+	| sed -e 's/\$(CFLAGS) -o \$(TARGET)/\$(CFLAGS) -shared -lc -o \$(TARGET)/'				\
 	> Makefile.$$
 
 (	echo
@@ -33,6 +34,7 @@ cat Makefile.am.sample						\
 	echo "distclean: clean"
 	echo '	rm -f $(ASN_MODULE_SOURCES) $(ASN_MODULE_HEADERS)'
 	echo "	rm -f Makefile.am.sample"
+	echo "	rm -f converter-sample.c"
 ) >> Makefile.$$
 
 rm Makefile.am.sample || exit $?

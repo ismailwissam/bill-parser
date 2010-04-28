@@ -1,6 +1,6 @@
 # Makefile for insert
 
-TARGET = insert
+TARGET = ../../release/insert
 SRCS = $(wildcard ./*.c)
 OBJECTS = $(SRCS:%.c=%.o)
 

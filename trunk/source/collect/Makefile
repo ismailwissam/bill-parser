@@ -1,6 +1,6 @@
 # Makefile for collect
 
-TARGET = collect
+TARGET = ../../release/collect
 SRCS = $(wildcard ./*.c)
 OBJECTS = $(SRCS:%.c=%.o)
 
