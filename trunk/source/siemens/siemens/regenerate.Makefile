@@ -13,7 +13,7 @@ set -x
 cat Makefile.am.sample						\
 	| sed -e 's/^CFLAGS.*/CFLAGS += -I. -I..\/ -I..\/..\/..\/helper\/asn1c\/skeletons -I..\/..\/..\/helper\/asn1c\/libasn1compiler -I..\/..\/..\/helper\/asn1c\/libasn1fix -I..\/..\/..\/helper\/asn1c\/libasn1parser -I..\/..\/..\/helper\/asn1c\/libasn1print -DHAVE_CONFIG_H -DPDU=Sr9Siemens/'	\
 	| sed -e 's/converter-sample/..\/siemens/'				\
-	| sed -e 's/progname/..\/..\/..\/release\/siemens.so/'				\
+	| sed -e 's/progname/..\/..\/..\/release\/pretreat\/siemens.so/'				\
 	| sed -e 's/\$(CFLAGS) -o \$(TARGET)/\$(CFLAGS) -shared -lc -o \$(TARGET)/'				\
 	> Makefile.$$
 
