@@ -1,0 +1,41 @@
+
+PATH=/usr/bin:/usr/sbin:/usr/ucb:/etc:/usr/local/bin:.
+export PATH
+
+SYBASE_ASE="ASE-12_5"
+export SYBASE_ASE
+PATH="/export/home/sybase/ASE-12_5/bin:/export/home/sybase/ASE-12_5/install":$PATH
+export PATH
+LD_LIBRARY_PATH="/export/home/sybase/ASE-12_5/lib":$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
+SYBASE_JRE="/export/home/sybase/shared-1_0/JRE-1_3"
+export SYBASE_JRE
+PATH="/export/home/sybase/JS-12_5/bin":$PATH
+export PATH
+PATH="/export/home/sybase/RPL-12_5/bin":$PATH
+export PATH
+SYBASE="/export/home/sybase"
+export SYBASE
+SYBASE_OCS="OCS-12_5"
+export SYBASE_OCS
+PATH="/export/home/sybase/OCS-12_5/bin":$PATH
+export PATH
+LD_LIBRARY_PATH="/export/home/sybase/OCS-12_5/lib:/export/home/sybase/OCS-12_5/lib3p64:/export/home/sybase/OCS-12_5/lib3p":$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
+SYBASE_SYSAM="SYSAM-1_0"
+export SYBASE_SYSAM
+LM_LICENSE_FILE="/export/home/sybase/SYSAM-1_0/licenses/license.dat"
+export LM_LICENSE_FILE
+export SYBASE_SYSAM
+LM_LICENSE_FILE="/export/home/sybase/SYSAM-1_0/licenses/license.dat"
+export LM_LICENSE_FILE
+LANG=C
+export LANG
+PATH=$PATH:/usr/local/BerkeleyDB.4.3/bin:/usr/ccs/bin
+export PATH
+LD_LIBRARY_PATH=/usr/local/lib:/usr/local/BerkeleyDB.4.3/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
+
+
+ps -ef|grep "insert "|grep -v grep|cut -c9-15|xargs kill -9 
+/cdma_cdr_analyse/bin/insert/insert -i/cdma_cdr_analyse/data_2.0 -r/cdma_cdr_analyse/bin/insert -usa -wbocosa -sBJCDRPAR -p5
