@@ -78,6 +78,7 @@ typedef struct {
 	
 	//登陆信息,v1.1添加端口port
 	char  ip[256];
+	int   port; //端口port:华为6621
 	char  usr[256];
 	char  password[256];
 	//各种目录
@@ -103,7 +104,8 @@ typedef struct {
 /************************************************************************/
 /* 枚举定义 */
 /************************************************************************/
-typedef enum parse_code {
+typedef enum parse_code 
+{
 	PARSE_FAIL 	    = -1,
 	PARSE_MATCH	    = 1 ,
 	PARSE_UNMATCH	= 2 ,
@@ -195,13 +197,13 @@ void err_log(char * format,...)
 	
 	va_list ap;
 	
-	if(g_nDebug)
-	{
-		va_start(ap, format);
-		vprintf(format,ap);
-		va_end(ap);
-		printf("\n");
-	}
+// 	if(g_nDebug)
+// 	{
+// 		va_start(ap, format);
+// 		vprintf(format,ap);
+// 		va_end(ap);
+// 		printf("\n");
+// 	}
 	
 	if(g_nCurrentProcessNumber!=0)
 	{
@@ -473,7 +475,7 @@ int main(int argc,char * argv[])
 /************************************************************************/
 /*  Alur changed */
 /************************************************************************/
-	if(g_nDebug)	printf("1003:Check Finished.\nFileCommitDir:%s\nRunDir:%s\nParallelChildProcess: %d\nClean WORK dir.\n",g_szFileCommitDir,g_szRunDir,g_nParallelChildProcess);	
+	if(g_nDebug)	printf("1003:Check Finished.\n-FileCommitDir:%s\n-RunDir:%s\n-ParallelChildProcess: %d\n-Clean WORK dir.\n",g_szFileCommitDir,g_szRunDir,g_nParallelChildProcess);	
 
 	/*清理work目录下文件*/
 	memset(szFileName, 0, sizeof(szFileName));
@@ -519,7 +521,7 @@ int main(int argc,char * argv[])
 /************************************************************************/
 /*  Alur changed */
 /************************************************************************/
-		if(g_nDebug)	printf("Deamon|BEEP!!!\n");	
+// 		if(g_nDebug)	printf("Deamon|BEEP!!!\n");	
 
 		/*创建子进程*/
 		for(i=0;i<g_nParallelChildProcess;i++)
@@ -732,8 +734,8 @@ int verify_collect_conf(void)
 	FILE        * pFile=NULL;
 	char          szTempFileName[256];
 	char	      szBuff[2048];
-	char          szContent[9][256];
-	int           len;
+	char          szContent[10][256];
+	int           nLen;
 	
 	sprintf(szTempFileName,"%s/collect.conf",CONF);
 
@@ -770,8 +772,8 @@ int verify_collect_conf(void)
 		
 		if(szBuff[0]!='#')
 		{     	
-			if( sscanf(szBuff,"%s%s%s%s%s%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3],\
-				szContent[4],szContent[5],szContent[6],szContent[7],szContent[8])!=9 )
+			if( sscanf(szBuff,"%s%s%s%s%s%s%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3],\
+				szContent[4],szContent[5],szContent[6],szContent[7],szContent[8],szContent[9]) != 10 )
 			{
 				err_log("verify_collect_conf: collect.conf line %d incorrect\n",r);
 /************************************************************************/
@@ -783,8 +785,8 @@ int verify_collect_conf(void)
 				goto Exit_Pro;
 			}
 			
-			len=strlen(szContent[0]);
-			if(len!=8 || szContent[0][0]!='<' || szContent[0][len-1]!='>')
+			nLen=strlen(szContent[0]);
+			if(nLen!=8 || szContent[0][0]!='<' || szContent[0][nLen-1]!='>')
 			{
 				err_log("verify_collect_conf: collect.conf line %d incorrect\n",r);
 /************************************************************************/
@@ -796,7 +798,7 @@ int verify_collect_conf(void)
 				goto Exit_Pro;
 			}
 			
-			szContent[0][len-1]='\0';
+			szContent[0][nLen-1]='\0';
 			if(atoi(&szContent[0][1])!=r)
 			{
 				err_log("verify_collect_conf: collect.conf line %d incorrect\n",r);
@@ -812,9 +814,9 @@ int verify_collect_conf(void)
 /************************************************************************/
 /*  Alur changed */
 /************************************************************************/
-		if(g_nDebug)	printf("3004:Parsing Result:\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
+		if(g_nDebug)	printf("3004:Parsing Result:\n-%s\n-%s\n-%s\n-%s\n-%s\n-%s\n-%s\n-%s\n-%s\n-%s\n",
 								szContent[0],szContent[1],szContent[2],szContent[3],szContent[4],
-								szContent[5],szContent[6],szContent[7],szContent[8]);	
+								szContent[5],szContent[6],szContent[7],szContent[8],szContent[9]);	
 		
 	}
 	
@@ -838,40 +840,58 @@ Exit_Pro:
 	return r;
 }
 
-parse_code_e get_collect_conf(int lineno_conf,int current_process_number,collect_conf * p_collect_conf)
+/************************************************************************/
+/* 获取采集配置 */
+/************************************************************************/
+parse_code_e get_collect_conf(int nConfLineNo,int nCurrentProcessNumber,collect_conf * pCollectConf)
 {
-	parse_code_e  r;
-	
-	FILE        * fp=NULL;
-	
-	char          tmp_file_name[256];
-	char	      buff[2048];
-	char          content[9][256];
-	char        * p_str=NULL;
-	int           len;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("6001:get_collect_conf in\n");	
+
+	parse_code_e  oR;
+	FILE        * pFile=NULL;
+	char          szTempFileName[256];
+	char	      szBuff[2048];
+	char          szContent[10][256];
+	char        * szStr=NULL;
+	int           nLen;
 	int           i;
 	
-	r=PARSE_UNMATCH;
+	oR = PARSE_UNMATCH;
 	
-	sprintf(tmp_file_name,"%s/collect.conf",CONF);
-	fp=fopen(tmp_file_name,"r");
-	if(fp==NULL)
+	sprintf(szTempFileName,"%s/collect.conf",CONF);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("6002:try to open file: %s\n", szTempFileName);	
+	pFile = fopen(szTempFileName,"r");
+	if(pFile == NULL)
 	{
-		err_log("get_collect_conf: fopen %s fail\n",tmp_file_name);
-		r=PARSE_FAIL;
+		err_log("get_collect_conf: fopen %s fail\n",szTempFileName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("6101:Open file failed AND return PARSE_FAIL: %s\n", szTempFileName);	
+		oR = PARSE_FAIL;
 		goto Exit_Pro;
 	}
 	
-	i=0;
+	i = 0;
 	while(1)
 	{
-		memset(buff,0,sizeof(buff));
-		if(fgets(buff,sizeof(buff),fp)==NULL)
+		memset(szBuff,0,sizeof(szBuff));
+		if(fgets(szBuff,sizeof(szBuff),pFile)==NULL)
 		{
-			if(i<lineno_conf)
+			if(i < nConfLineNo)
 			{
-				err_log("get_collect_conf: collect.conf line less %d\n",lineno_conf);
-				r=PARSE_FAIL;
+				err_log("get_collect_conf: collect.conf line less %d\n",nConfLineNo);
+				oR = PARSE_FAIL;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if( g_nDebug )	printf("6102:i !< nConfLineNo AND return PARSE_FAIL: %s\n", szTempFileName);	
 				goto Exit_Pro;
 			}
 			break;
@@ -879,177 +899,218 @@ parse_code_e get_collect_conf(int lineno_conf,int current_process_number,collect
        	
 		i++;
 		
-		if(i==lineno_conf)
+		if(i == nConfLineNo)
 		{
-			if(buff[0]=='#')
+			if(szBuff[0] == '#')
 			{
-				r=PARSE_UNMATCH;
+				oR = PARSE_UNMATCH;
 				break;
 			}
 			
-			memset(content,0,sizeof(content));
-			if( sscanf(buff,"%s%s%s%s%s%s%s%s%s",content[0],content[1],content[2],content[3],content[4],\
-				content[5],content[6],content[7],content[8])!=9 )
+			memset(szContent,0,sizeof(szContent));
+			if( sscanf(szBuff,"%s%s%s%s%s%s%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3],szContent[4],\
+				szContent[5],szContent[6],szContent[7],szContent[8],szContent[9]) != 10 )
 			{
 				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
-				r=PARSE_FAIL;
-				goto Exit_Pro;
-			}
-			
-			p_collect_conf->collect_point=i;
-			strcpy(p_collect_conf->ip,content[1]);
-			strcpy(p_collect_conf->usr,content[2]);
-			strcpy(p_collect_conf->password,content[3]);
-			strcpy(p_collect_conf->path_str,content[4]);
-			strcpy(p_collect_conf->file_str,content[5]);
-			strcpy(p_collect_conf->backup_path,content[6]);
-			p_collect_conf->current_process_number=current_process_number;
 /************************************************************************/
-/* Alur changed */
-/************************************************************************/	
-			if (g_nDebug)	printf("%s\n%s\n%s\n%s\n%s\n%s\n",content[1],content[2],content[3],content[4],content[5],content[6]);
-			/*path_up,path_last,path_pre,path_suf,is_multi_path*/
-			len=strlen(content[4]);
-			if(len<1)
-			{
-				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
-				r=PARSE_FAIL;
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("6103:sscanf error AND return PARSE_FAIL: %s\n", szTempFileName);	
+				oR = PARSE_FAIL;
 				goto Exit_Pro;
-			}
-			p_str=strrchr(content[4],'/');
-			if(p_str==NULL)
-			{
-				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
-				r=PARSE_FAIL;
-				goto Exit_Pro;
-			}
-			strncpy(p_collect_conf->path_up,content[4],p_str-content[4]+1);
-			if( &content[4][len-1]-p_str>0 )
-			{
-				strncpy(p_collect_conf->path_last,p_str+1,&content[4][len-1]-p_str);
 			}
 			
-			if( (len=strlen(p_collect_conf->path_last))>0 )
+			pCollectConf->collect_point = i;
+			strcpy(pCollectConf->ip,szContent[1]);
+			pCollectConf->port = atoi(szContent[2]);
+			strcpy(pCollectConf->usr,szContent[3]);
+			strcpy(pCollectConf->password,szContent[4]);
+			strcpy(pCollectConf->path_str,szContent[5]);
+			strcpy(pCollectConf->file_str,szContent[6]);
+			strcpy(pCollectConf->backup_path,szContent[7]);
+			pCollectConf->current_process_number = nCurrentProcessNumber;
+
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("6003:Start checking.\n");	
+
+			/*path_up,path_last,path_pre,path_suf,is_multi_path*/
+			nLen = strlen(szContent[5]);
+			if(nLen < 1)
 			{
-				p_str=strchr(p_collect_conf->path_last,'*');
+				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("6104:Line %d is incorrect: szContent[5] nLen < 1.\n", i);	
+				oR = PARSE_FAIL;
+				goto Exit_Pro;
+			}
+			szStr = strrchr(szContent[5],'/');
+			if(szStr == NULL)
+			{
+				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("6105:Line %d is incorrect: szContent[5] szStr == NULL.\n", i);	
+				oR=PARSE_FAIL;
+				goto Exit_Pro;
+			}
+			strncpy(pCollectConf->path_up,szContent[5],szStr-szContent[5]+1);
+			if( &szContent[5][nLen-1]-szStr>0 )
+			{
+				strncpy(pCollectConf->path_last,szStr+1,&szContent[5][nLen-1]-szStr);
+			}
+			
+			if( (nLen=strlen(pCollectConf->path_last))>0 )
+			{
+				szStr=strchr(pCollectConf->path_last,'*');
 				
-				if(p_str==NULL)
+				if(szStr==NULL)
 				{
-					p_collect_conf->is_multi_path=0;
+					pCollectConf->is_multi_path=0;
 				}
 				else
 				{
-					p_collect_conf->is_multi_path=1;
-					if(p_str>p_collect_conf->path_last)
+					pCollectConf->is_multi_path=1;
+					if(szStr>pCollectConf->path_last)
 					{
-						strncpy(p_collect_conf->path_pre,p_collect_conf->path_last,p_str-p_collect_conf->path_last);
+						strncpy(pCollectConf->path_pre,pCollectConf->path_last,szStr-pCollectConf->path_last);
 					}
 				}
 				
-				p_str=strrchr(p_collect_conf->path_last,'*');
-				if(p_str!=NULL)
+				szStr=strrchr(pCollectConf->path_last,'*');
+				if(szStr!=NULL)
 				{
-					if( &(p_collect_conf->path_last[len-1])-p_str>0 )
+					if( &(pCollectConf->path_last[nLen-1])-szStr>0 )
 					{
-						strncpy(p_collect_conf->path_suf,p_str+1,&(p_collect_conf->path_last[len-1])-p_str);
+						strncpy(pCollectConf->path_suf,szStr+1,&(pCollectConf->path_last[nLen-1])-szStr);
 					}
 				}
 			}
 			else
 			{
-				p_collect_conf->is_multi_path=0;
+				pCollectConf->is_multi_path=0;
 			}	
 			
 			/*file_pre,file_suf*/
-			len=strlen(content[5]);
-			if(len<1)
+			nLen = strlen(szContent[6]);
+			if(nLen < 1)
 			{
 				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
-				r=PARSE_FAIL;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("6106:Line %d is incorrect: szContent[6] nLen < 1.\n", i);	
+				oR=PARSE_FAIL;
 				goto Exit_Pro;
 			}
-			p_str=strchr(content[5],'*');
-			if(p_str==NULL)
+			szStr=strchr(szContent[6],'*');
+			if(szStr == NULL)
+			{
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("6107:Line %d is incorrect: szContent[6] szStr == NULL.1\n", i);	
+				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
+				oR=PARSE_FAIL;
+				goto Exit_Pro;
+			}
+			if(szStr>szContent[6])
+			{
+				strncpy(pCollectConf->file_pre,szContent[6],szStr-szContent[6]);
+			}
+			szStr=strrchr(szContent[6],'*');
+			if(szStr == NULL)
 			{
 				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
-				r=PARSE_FAIL;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("6107:Line %d is incorrect: szContent[6] szStr == NULL.2\n", i);	
+				oR=PARSE_FAIL;
 				goto Exit_Pro;
 			}
-			if(p_str>content[5])
+			if( &szContent[6][nLen-1]-szStr>0 )
 			{
-				strncpy(p_collect_conf->file_pre,content[5],p_str-content[5]);
-			}
-			p_str=strrchr(content[5],'*');
-			if(p_str==NULL)
-			{
-				err_log("get_collect_conf: collect.conf line %d incorrect\n",i);
-				r=PARSE_FAIL;
-				goto Exit_Pro;
-			}
-			if( &content[5][len-1]-p_str>0 )
-			{
-				strncpy(p_collect_conf->file_suf,p_str+1,&content[5][len-1]-p_str);
+				strncpy(pCollectConf->file_suf,szStr+1,&szContent[6][nLen-1]-szStr);
 			}
 			
 			/*is_backup,is_commit,is_interval_file*/
-			if(strcasecmp(content[6],"not")==0)
+			if(strcasecmp(szContent[7],"not")==0)
 			{
-				p_collect_conf->is_backup=0;
+				pCollectConf->is_backup=0;
 			}
 			else
 			{
-				p_collect_conf->is_backup=1;
+				pCollectConf->is_backup=1;
 			}
 			
-			if(strcasecmp(content[7],"yes")==0)
+			if(strcasecmp(szContent[8],"yes")==0)
 			{
-				p_collect_conf->is_commit=1;
+				pCollectConf->is_commit=1;
 			}
 			else
 			{
-				p_collect_conf->is_commit=0;
+				pCollectConf->is_commit=0;
 			}
 			
-			if(strcasecmp(content[8],"yes")==0)
+			if(strcasecmp(szContent[9],"yes")==0)
 			{
-				p_collect_conf->is_interval_file=1;
+				pCollectConf->is_interval_file=1;
 			}
 			else
 			{
-				p_collect_conf->is_interval_file=0;
+				pCollectConf->is_interval_file=0;
 			}
 			
-			r=PARSE_MATCH;
+			oR = PARSE_MATCH;
+/************************************************************************/
+/* Alur changed */
+/************************************************************************/	
+			if (g_nDebug)	printf("6004:Parsing finished:\n-%s\n-%s\n-%s   %d\n-%s\n-%s\n-%s\n-%s\n-%s\n-%s\n-%s\n",
+				szContent[0],szContent[1],szContent[2],pCollectConf->port,szContent[3],szContent[4],
+				szContent[5],szContent[6],szContent[7],szContent[8],szContent[9]);
+
 			break;
 			}
 			
 	}
 Exit_Pro:	
-	if(fp!=NULL)
-		fclose(fp);
-	if(g_nDebug)
-	{
-		err_log("get_collect_conf: debug r=%d#\n",r);
-		err_log("get_collect_conf: debug p_collect_conf->collect_point         =%d#",p_collect_conf->collect_point);
-		err_log("get_collect_conf: debug p_collect_conf->ip                    =%s#",p_collect_conf->ip);
-		err_log("get_collect_conf: debug p_collect_conf->usr                   =%s#",p_collect_conf->usr);
-		err_log("get_collect_conf: debug p_collect_conf->password              =%s#",p_collect_conf->password);
-		err_log("get_collect_conf: debug p_collect_conf->path_str              =%s#",p_collect_conf->path_str);
-		err_log("get_collect_conf: debug p_collect_conf->path_up               =%s#",p_collect_conf->path_up);
-		err_log("get_collect_conf: debug p_collect_conf->path_last             =%s#",p_collect_conf->path_last);
-		err_log("get_collect_conf: debug p_collect_conf->path_pre              =%s#",p_collect_conf->path_pre);
-		err_log("get_collect_conf: debug p_collect_conf->path_suf              =%s#",p_collect_conf->path_suf);
-		err_log("get_collect_conf: debug p_collect_conf->is_multi_path         =%d#",p_collect_conf->is_multi_path);
-		err_log("get_collect_conf: debug p_collect_conf->file_str              =%s#",p_collect_conf->file_str);
-		err_log("get_collect_conf: debug p_collect_conf->file_pre              =%s#",p_collect_conf->file_pre);
-		err_log("get_collect_conf: debug p_collect_conf->file_suf              =%s#",p_collect_conf->file_suf);
-		err_log("get_collect_conf: debug p_collect_conf->backup_path           =%s#",p_collect_conf->backup_path);
-		err_log("get_collect_conf: debug p_collect_conf->is_backup             =%d#",p_collect_conf->is_backup);
-		err_log("get_collect_conf: debug p_collect_conf->is_commit             =%d#",p_collect_conf->is_commit);
-		err_log("get_collect_conf: debug p_collect_conf->is_interval_file      =%d#",p_collect_conf->is_interval_file);
-		err_log("get_collect_conf: debug p_collect_conf->current_process_number=%d#",p_collect_conf->current_process_number);
-	}
-	return r;
+	if(pFile!=NULL)
+		fclose(pFile);
+
+// 	if(g_nDebug)
+// 	{
+// 		err_log("get_collect_conf: debug oR=%d#\n",oR);
+// 		err_log("get_collect_conf: debug p_collect_conf->collect_point         =%d#",p_collect_conf->collect_point);
+// 		err_log("get_collect_conf: debug p_collect_conf->ip                    =%s#",p_collect_conf->ip);
+// 		err_log("get_collect_conf: debug p_collect_conf->usr                   =%s#",p_collect_conf->usr);
+// 		err_log("get_collect_conf: debug p_collect_conf->password              =%s#",p_collect_conf->password);
+// 		err_log("get_collect_conf: debug p_collect_conf->path_str              =%s#",p_collect_conf->path_str);
+// 		err_log("get_collect_conf: debug p_collect_conf->path_up               =%s#",p_collect_conf->path_up);
+// 		err_log("get_collect_conf: debug p_collect_conf->path_last             =%s#",p_collect_conf->path_last);
+// 		err_log("get_collect_conf: debug p_collect_conf->path_pre              =%s#",p_collect_conf->path_pre);
+// 		err_log("get_collect_conf: debug p_collect_conf->path_suf              =%s#",p_collect_conf->path_suf);
+// 		err_log("get_collect_conf: debug p_collect_conf->is_multi_path         =%d#",p_collect_conf->is_multi_path);
+// 		err_log("get_collect_conf: debug p_collect_conf->file_str              =%s#",p_collect_conf->file_str);
+// 		err_log("get_collect_conf: debug p_collect_conf->file_pre              =%s#",p_collect_conf->file_pre);
+// 		err_log("get_collect_conf: debug p_collect_conf->file_suf              =%s#",p_collect_conf->file_suf);
+// 		err_log("get_collect_conf: debug p_collect_conf->backup_path           =%s#",p_collect_conf->backup_path);
+// 		err_log("get_collect_conf: debug p_collect_conf->is_backup             =%d#",p_collect_conf->is_backup);
+// 		err_log("get_collect_conf: debug p_collect_conf->is_commit             =%d#",p_collect_conf->is_commit);
+// 		err_log("get_collect_conf: debug p_collect_conf->is_interval_file      =%d#",p_collect_conf->is_interval_file);
+// 		err_log("get_collect_conf: debug p_collect_conf->current_process_number=%d#",p_collect_conf->current_process_number);
+// 	}
+
+/************************************************************************/
+/* Alur changed */
+/************************************************************************/	
+	if (g_nDebug)	printf("6006:get_collect_conf out.\n");
+
+	return oR;
 }
 
 
@@ -1546,164 +1607,223 @@ Exit_Pro:
 	return r;
 }
 
+/************************************************************************/
+/* 解析采集配置文件并尝试连接FTP */
+/************************************************************************/
 /*
 *parse_collect_conf()
-*                      if return PARSE_MATCH,remote_path and remote_file_name are given
+*                      if return PARSE_MATCH,szRemotePath and szRemoteFileName are given
 *
 */
-parse_code_e parse_collect_conf(collect_conf * p_collect_conf,char * remote_path,char * remote_file_name)
+parse_code_e parse_collect_conf(collect_conf * pCollectConf,char * szRemotePath,char * szRemoteFileName)
 {
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("5001:parse_collect_conf in.\n");	
 	
-	parse_code_e  r;
-	parse_code_e  r_file;
-	parse_code_e  r_file_2;
+	parse_code_e  oR;
+	parse_code_e  oRFile;
+	parse_code_e  oRFile2;
 	
-	int           ftp_ret;
-	char          dir_name[256];
-	char          file_name[256];
-	char          dirfromconf[256];
-	char          filefromconf[256];
+	int           nFtpRet;
+	char          szDirName[256];
+	char          szFileName[256];
+	char          szDirFromConf[256];
+	char          szFileFromConf[256];
 	
-	FILE          * fp=NULL;
-	char          tmp_file_name[256];
-	int           tmp_collect_point;
+	FILE          * pFile=NULL;
+	char          szTempFileName[256];
+	int           nTempCollectPoint;
 	
-	r=PARSE_UNMATCH;
+	oR = PARSE_UNMATCH;
 	
-	tmp_collect_point=0;
-	memset(dirfromconf,0,sizeof(dirfromconf));
-	memset(filefromconf,0,sizeof(filefromconf));
+	nTempCollectPoint=0;
+	memset(szDirFromConf,0,sizeof(szDirFromConf));
+	memset(szFileFromConf,0,sizeof(szFileFromConf));
 	
-	sprintf(tmp_file_name,"%s/%06d_run.conf",CONF,p_collect_conf->collect_point);
-	if(access(tmp_file_name,F_OK)==0)
+	sprintf(szTempFileName,"%s/%06d_run.conf",CONF,pCollectConf->collect_point);
+
+	if(access(szTempFileName,F_OK) == 0)
 	{
-		fp=fopen(tmp_file_name,"r");
-		if(fp==NULL)
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("5002:Try to open file: %s.\n",szTempFileName);	
+
+		pFile = fopen(szTempFileName,"r");
+		if(pFile == NULL)
 		{
-			err_log("parse_collect_conf: fopen %s fail\n",tmp_file_name);
-			r=PARSE_FAIL;
+			err_log("parse_collect_conf: fopen %s fail\n",szTempFileName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("5101:Open file failed AND return PARSE_FAIL: %s.\n",szTempFileName);	
+			oR = PARSE_FAIL;
 			goto Exit_Pro;
 		}
-		fscanf(fp,"<%d>%s%s",&tmp_collect_point,dirfromconf,filefromconf);
-		if(tmp_collect_point!=p_collect_conf->collect_point)
+		fscanf(pFile,"<%d>%s%s",&nTempCollectPoint,szDirFromConf,szFileFromConf);
+		if(nTempCollectPoint != pCollectConf->collect_point)
 		{
-			err_log("parse_collect_conf: %s content fail\n",tmp_file_name);
-			r=PARSE_FAIL;
+			err_log("parse_collect_conf: %s szContent fail\n",szTempFileName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("5102:nTempCollectPoint != pCollectConf->collect_point AND return PARSE_FAIL: %s.\n",szTempFileName);	
+			oR = PARSE_FAIL;
 			goto Exit_Pro;
 		}
-		fclose(fp);
-		fp=NULL;
+		fclose(pFile);
+		pFile=NULL;
 	}
 	
 /************************************************************************/
-/* alur changed:尝试修改端口以适应华为设备*/
+/* Alur changed:增加端口 */
 /************************************************************************/
+	if(g_nDebug)	printf("5003:Try to Ftp_Init.\n");	
 	/* Ftp_Init() */
-	int iDefaultPort = 6621;
-	ftp_ret=Ftp_Init(p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,iDefaultPort,FTP_TIME_OUT,1,1,g_nDebug);
-	printf("2.FTP premters: usr:%s, pwd:%s, ip:%s, port:%d.\n",p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,iDefaultPort);
-// 	ftp_ret=Ftp_Init(p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,0,FTP_TIME_OUT,1,1,debug);
-	if(ftp_ret!=0)
+	nFtpRet = Ftp_Init(pCollectConf->usr,pCollectConf->password,pCollectConf->ip,pCollectConf->port,FTP_TIME_OUT,1,1,g_nDebug);
+// 	nFtpRet=Ftp_Init(pCollectConf->usr,pCollectConf->password,pCollectConf->ip,0,FTP_TIME_OUT,1,1,debug);
+	if(nFtpRet!=0)
 	{
-		err_log("parse_collect_conf: Ftp_Init fail,collect_point=%d\n",p_collect_conf->collect_point);
-		r=PARSE_FAIL;
+		err_log("parse_collect_conf: Ftp_Init fail,collect_point=%d\n",pCollectConf->collect_point);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("5103:Ftp_Init failed.\n");	
+		oR=PARSE_FAIL;
 		goto Exit_Pro;
 	}
+
+/************************************************************************/
+/* Alur changed:增加端口 */
+/************************************************************************/
+	if(g_nDebug)	printf("5004:Try to Ftp_Cd: %s\n",pCollectConf->path_up);	
 	
 	/* Ftp_Cd() */
-	ftp_ret=Ftp_Cd(p_collect_conf->path_up);
-	if(ftp_ret!=0)
+	nFtpRet=Ftp_Cd(pCollectConf->path_up);
+	if(nFtpRet!=0)
 	{
-		err_log("parse_collect_conf: Ftp_Cd fail,collect_point=%d,dir=%s\n",p_collect_conf->collect_point,p_collect_conf->path_up);
-		r=PARSE_FAIL;
+		err_log("parse_collect_conf: Ftp_Cd fail,collect_point=%d,dir=%s\n",pCollectConf->collect_point,pCollectConf->path_up);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("5104:Ftp_Cd failed: %s.\n",pCollectConf->path_up);	
+		oR = PARSE_FAIL;
 		goto Exit_Pro;
 	}
 	
+
 	/* Multi PATH */
-	if(p_collect_conf->is_multi_path)
+	if(pCollectConf->is_multi_path)
 	{
+
 		/* Multi PATH, Interval */
-		if(p_collect_conf->is_interval_file)
+		if(pCollectConf->is_interval_file)
 		{
-			memset(dir_name,0,sizeof(dir_name));
-			memset(file_name,0,sizeof(file_name));
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("5005:Multi PATH Interval start.\n");	
+
+			memset(szDirName,0,sizeof(szDirName));
+			memset(szFileName,0,sizeof(szFileName));
 			
-			r_file_2=parse_get_file_name_2(p_collect_conf,dirfromconf,filefromconf,dir_name,file_name);
+			oRFile2 = parse_get_file_name_2(pCollectConf,szDirFromConf,szFileFromConf,szDirName,szFileName);
 			
-			if(r_file_2==PARSE_FAIL || r_file_2==PARSE_UNMATCH)
+			if(oRFile2 == PARSE_FAIL || oRFile2 == PARSE_UNMATCH)
 			{
-				r=r_file_2;
+				oR=oRFile2;
 				goto Exit_Pro;
 			}
 			
-			if(r_file_2==PARSE_MATCH)
+			if(oRFile2 == PARSE_MATCH)
 			{
-				strcpy(remote_path,dir_name);
-				strcpy(remote_file_name,file_name);
+				strcpy(szRemotePath,szDirName);
+				strcpy(szRemoteFileName,szFileName);
 				
-				memset(dir_name,0,sizeof(dir_name));
-				memset(file_name,0,sizeof(file_name));
+				memset(szDirName,0,sizeof(szDirName));
+				memset(szFileName,0,sizeof(szFileName));
 				
-				r_file_2=parse_get_file_name_2(p_collect_conf,remote_path,remote_file_name,dir_name,file_name);
+				oRFile2 = parse_get_file_name_2(pCollectConf,szRemotePath,szRemoteFileName,szDirName,szFileName);
 				
-				r=r_file_2;
+				oR = oRFile2;
 				goto Exit_Pro;
 			}
 		}
 		/* Multi PATH, NOT Interval */
 		else
 		{
-			memset(dir_name,0,sizeof(dir_name));
-			memset(file_name,0,sizeof(file_name));
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("5006:Multi PATH NOT Interval start.\n");	
+
+			memset(szDirName,0,sizeof(szDirName));
+			memset(szFileName,0,sizeof(szFileName));
 			
-			r_file_2=parse_get_file_name_2(p_collect_conf,dirfromconf,filefromconf,dir_name,file_name);
+			oRFile2=parse_get_file_name_2(pCollectConf,szDirFromConf,szFileFromConf,szDirName,szFileName);
 			
-			if(r_file_2==PARSE_MATCH)
+			if(oRFile2==PARSE_MATCH)
 			{
-				strcpy(remote_path,dir_name);
-				strcpy(remote_file_name,file_name);
+				strcpy(szRemotePath,szDirName);
+				strcpy(szRemoteFileName,szFileName);
 			}
 			
-			r=r_file_2;
+			oR=oRFile2;
 			goto Exit_Pro;
 		}
 	}
 	/* NOT Multi PATH */
 	else
 	{
-		strcpy(remote_path,p_collect_conf->path_last);
-		if(*remote_path!='\0')
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if( g_nDebug )	printf("5007:NOT Multi PATH start AND try to Ftp_Cd:%s.\n",szRemotePath);	
+
+		strcpy( szRemotePath, pCollectConf->path_last );
+		if(*szRemotePath != '\0')
 		{  
-			ftp_ret=Ftp_Cd(remote_path);
-			if(ftp_ret!=0)
+			nFtpRet = Ftp_Cd(szRemotePath);
+			if(nFtpRet != 0)
 			{
-				err_log("parse_collect_conf: Ftp_Cd 2 fail,collect_point=%d,dir=%s\n",p_collect_conf->collect_point,remote_path);
-				r=PARSE_FAIL;
+				err_log("parse_collect_conf: Ftp_Cd 2 fail,collect_point=%d,dir=%s\n",pCollectConf->collect_point,szRemotePath);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("5105: Ftp_Cd failed AND return PARSE_FAIL.\n-%s\n-%s\n",szRemotePath,szTempFileName);	
+				oR = PARSE_FAIL;
 				goto Exit_Pro;
 			}
 		}  	
 		/* NOT Multi PATH, Interval */
-		if(p_collect_conf->is_interval_file)
+		if(pCollectConf->is_interval_file)
 		{
-			memset(file_name,0,sizeof(file_name));
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if( g_nDebug )	printf("5008:NOT Multi PATH, Interval start.\n");	
+
+			memset(szFileName,0,sizeof(szFileName));
 			
-			r_file=parse_get_file_name(p_collect_conf,filefromconf,file_name);
+			oRFile=parse_get_file_name(pCollectConf,szFileFromConf,szFileName);
 			
-			if(r_file==PARSE_FAIL || r_file==PARSE_UNMATCH)
+			if(oRFile==PARSE_FAIL || oRFile==PARSE_UNMATCH)
 			{
-				r=r_file;
+				oR=oRFile;
 				goto Exit_Pro;
 			}
 			
-			if(r_file==PARSE_MATCH)
+			if(oRFile==PARSE_MATCH)
 			{
-				strcpy(remote_file_name,file_name);
+				strcpy(szRemoteFileName,szFileName);
 				
-				memset(file_name,0,sizeof(file_name));
+				memset(szFileName,0,sizeof(szFileName));
 				
-				r_file=parse_get_file_name(p_collect_conf,remote_file_name,file_name);
+				oRFile=parse_get_file_name(pCollectConf,szRemoteFileName,szFileName);
 				
-				r=r_file;
+				oR=oRFile;
 				goto Exit_Pro;
 			}
 			
@@ -1712,24 +1832,33 @@ parse_code_e parse_collect_conf(collect_conf * p_collect_conf,char * remote_path
 		/* NOT Multi PATH, NOT Interval */
 		else
 		{
-			memset(file_name,0,sizeof(file_name));
-			r_file=parse_get_file_name(p_collect_conf,filefromconf,file_name);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if( g_nDebug )	printf("5009:NOT Multi PATH, NOT Interval start.\n");	
+
+			memset(szFileName,0,sizeof(szFileName));
+			oRFile=parse_get_file_name(pCollectConf,szFileFromConf,szFileName);
 			
-			if(r_file==PARSE_MATCH)
-				strcpy(remote_file_name,file_name);
+			if(oRFile == PARSE_MATCH)
+				strcpy(szRemoteFileName,szFileName);
 			
-			r=r_file;
+			oR=oRFile;
 			goto Exit_Pro;
 		}
 	}
 	
 Exit_Pro:
-	if(fp!=NULL)
-		fclose(fp);
+	if(pFile!=NULL)
+		fclose(pFile);
 	/* Ftp_Close() */
 	Ftp_Close();
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("5010:parse_collect_conf out.\n");	
 	
-	return r;
+	return oR;
 }
 
 /*
@@ -1747,12 +1876,10 @@ int get_remote_file(collect_conf * p_collect_conf,char * remote_path,char * remo
 	r=0;
 
 /************************************************************************/
-/* alur changed:尝试修改端口以适应华为设备*/
+/* alur changed:增加端口*/
 /************************************************************************/
 	/* Ftp_Init() */
-	int iDefaultPort = 6621;
-	ftp_ret=Ftp_Init(p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,iDefaultPort,FTP_TIME_OUT,1,1,g_nDebug);
-	printf("1.FTP premters: usr:%s, pwd:%s, ip:%s, port:%d.\n",p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,iDefaultPort);
+	ftp_ret=Ftp_Init(p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,p_collect_conf->port,FTP_TIME_OUT,1,1,g_nDebug);
 //		ftp_ret=Ftp_Init(p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,0,FTP_TIME_OUT,1,1,debug);
 	if(ftp_ret!=0)
 	{
@@ -1801,158 +1928,238 @@ Exit_Pro:
 	return r;
 }
 
+/************************************************************************/
+/* 获取备份文件名 */
+/************************************************************************/
 /*
 *get_backup_name()
 *             return 0 success, 1 fail
 *
 */
-int get_backup_name(collect_conf * p_collect_conf,char * remote_path,char * remote_file_name,char * backup_name)
+int get_backup_name(collect_conf * pCollectConf,char * szRemotePath,char * szRemoteFileName,char * szBackupName)
 {
-	int    r;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("8001:get_backup_name in\n");	
 	
-	char   tmp[512];
-	char   tmp_path[256];
-	char  *p_str=NULL;
+	int    nRe = 0;
 	
-	int    len=0;
+	char   szTemp[512];
+	char   szTempPath[256];
+	char  *szString = NULL;
 	
-	r=0;
+	int    nLen=0;
 	
-	if(p_collect_conf->is_multi_path)
+	if(pCollectConf->is_multi_path)
 	{
-		sprintf(backup_name,"%s/%s/%s",p_collect_conf->backup_path,remote_path,remote_file_name);
-		sprintf(tmp,"%s/%s",p_collect_conf->backup_path,remote_path);
-		tmp[sizeof(tmp)-1]='\0';
-		if(access(tmp,F_OK)==-1)
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("8002:is_multi_path.\n");	
+
+		sprintf(szBackupName,"%s/%s/%s",pCollectConf->backup_path,szRemotePath,szRemoteFileName);
+		sprintf(szTemp,"%s/%s",pCollectConf->backup_path,szRemotePath);
+		szTemp[sizeof(szTemp)-1]='\0';
+		if(access(szTemp,F_OK) == -1)
 		{
-			if(mkdir(tmp,0755)!=0)
+			if(mkdir(szTemp,0755)!=0)
 			{
-				err_log("get_backup_name: mkdir %s fail\n",tmp);
-				r=1;
+				err_log("get_backup_name: mkdir %s fail\n",szTemp);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("8101:mkdir fail:%s\n",szTemp);	
+
+				nRe=1;
 				goto Exit_Pro;
 			}
 		}
 	}
 	else
 	{
-		memset(tmp_path,0,sizeof(tmp_path));
-		p_str=strchr(remote_file_name,'.');
-		if(p_str==NULL)
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("8003:NOT is_multi_path.\n");	
+
+		memset(szTempPath,0,sizeof(szTempPath));
+		szString=strchr(szRemoteFileName,'.');
+		if(szString == NULL)
 		{
-			err_log("get_backup_name: get tmp_path from %s fail\n",remote_file_name);
-			r=1;
+			err_log("get_backup_name: get szTempPath from %s fail\n",szRemoteFileName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("8102:szString == NULL\n");	
+			nRe=1;
 			goto Exit_Pro;
 		}
 		
-		len=strlen(remote_file_name);
-		if(&remote_file_name[len-1]-p_str-1>=0)
+		nLen=strlen(szRemoteFileName);
+		if(&szRemoteFileName[nLen-1]-szString-1>=0)
 		{
-			if(&remote_file_name[len-1]-p_str>10)
-				strncpy(tmp_path,p_str+1,10);
+			if(&szRemoteFileName[nLen-1]-szString>10)
+				strncpy(szTempPath,szString+1,10);
 			else
-				strncpy(tmp_path,p_str+1,&remote_file_name[len-1]-p_str);
+				strncpy(szTempPath,szString+1,&szRemoteFileName[nLen-1]-szString);
 		}
 		else
 		{
-			err_log("get_backup_name: get tmp_path from %s fail\n",remote_file_name);
-			r=1;
+			err_log("get_backup_name: get szTempPath from %s fail\n",szRemoteFileName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("8103: ! &szRemoteFileName[nLen-1]-szString-1>=0\n");	
+			nRe=1;
 			goto Exit_Pro;
 		}
-		
-		
+			
 		
 		//??
-		sprintf(backup_name,"%s/%s/%s",p_collect_conf->backup_path,tmp_path,remote_file_name);
-		sprintf(tmp,"%s/%s",p_collect_conf->backup_path,tmp_path);
-		tmp[sizeof(tmp)-1]='\0';
-		if(access(tmp,F_OK)==-1)
+		sprintf(szBackupName,"%s/%s/%s",pCollectConf->backup_path,szTempPath,szRemoteFileName);
+		sprintf(szTemp,"%s/%s",pCollectConf->backup_path,szTempPath);
+		szTemp[sizeof(szTemp)-1]='\0';
+		if(access(szTemp,F_OK)==-1)
 		{
-			if(mkdir(tmp,0755)!=0)
+			if(mkdir(szTemp,0755)!=0)
 			{
-				err_log("get_backup_name: mkdir %s fail\n",tmp);
-				r=1;
+				err_log("get_backup_name: mkdir %s fail\n",szTemp);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+				if(g_nDebug)	printf("8104:mkdir fail:%s\n",szTemp);	
+				nRe=1;
 				goto Exit_Pro;
 			}
 		}
 	}
 	
 Exit_Pro:
-	return r;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("8004:get_backup_name out\n");	
+
+	return nRe;
 }
 
+/************************************************************************/
+/* 备份文件 */
+/************************************************************************/
 /*
 *backup_file()
 *              return 0 success, 1 fail
 *
 */
-int backup_file(collect_conf * p_collect_conf,char * remote_path,char * remote_file_name)
+int backup_file(collect_conf * pCollectConf,char * szRemotePath,char * szRemoteFileName)
 {
-	int  ret;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("7001:backup_file in\n");	
+
+	int  nRe;
 	
-	FILE *fp_i=NULL;
-	FILE *fp_o=NULL;
+	FILE *pFileIn=NULL;
+	FILE *pFileOut=NULL;
 	
-	char backup_name[512];
+	char szBackupName[512];
 	
-	char tmp_file_name[512];
+	char szTempFileName[512];
 	
-	int  r_len;
-	int  w_len;
-	int  buff_len;
-	char buff[8192];
+	int  nRLen;
+	int  nWLen;
+	int  nBuffLen;
+	char szBuff[8192];
 	
-	ret=0;
+	nRe = 0;
 	
 	/*判断是否备份*/ 
-	if(p_collect_conf->is_backup)
-	{ 
-		sprintf(tmp_file_name,"%s/%03d_%s",WORK,p_collect_conf->current_process_number,remote_file_name);
+	if(pCollectConf->is_backup)
+	{
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("7002:Need Backup.\n");	
+ 
+		sprintf(szTempFileName,"%s/%03d_%s",WORK,pCollectConf->current_process_number,szRemoteFileName);
 		
-		memset(backup_name,0,sizeof(backup_name));
-		if(get_backup_name(p_collect_conf,remote_path,remote_file_name,backup_name)!=0)
+		memset(szBackupName,0,sizeof(szBackupName));
+		if(get_backup_name(pCollectConf,szRemotePath,szRemoteFileName,szBackupName)!=0)
 		{
 			err_log("backup_file: get_backup_name fail\n");
-			ret=1;
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("7101:get_backup_name fail.\n");	
+			nRe=1;
 			goto Exit_Pro;
-		}	
-		backup_name[sizeof(backup_name)-1]='\0';
+		}
+		szBackupName[sizeof(szBackupName)-1]='\0';
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("7003:Open Temp File AND Backup File.\n-TempFile:%s\n-BackupFile:%s\n",
+			szTempFileName,szBackupName);	
 		
-		fp_i=fopen(tmp_file_name,"r");
-		if(fp_i==NULL)
+		pFileIn = fopen(szTempFileName,"r");
+		if(pFileIn==NULL)
 		{
-			err_log("backup_file: fopen %s fail\n",tmp_file_name);
-			ret=1;
+			err_log("backup_file: fopen %s fail\n",szTempFileName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("7102:Open Temp file fail : %s\n",szTempFileName);	
+			nRe=1;
 			goto Exit_Pro;
 		}
 		
-		fp_o=fopen(backup_name,"w+");
-		if(fp_o==NULL)
+		pFileOut=fopen(szBackupName,"w+");
+		if(pFileOut==NULL)
 		{
-			err_log("backup_file: fopen %s fail\n",backup_name);
-			ret=1;
+			err_log("backup_file: fopen %s fail\n",szBackupName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+			if(g_nDebug)	printf("7103:Open Backup file fail : %s\n",szBackupName);	
+			nRe=1;
 			goto Exit_Pro;
 		}
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+		if(g_nDebug)	printf("7004:Start backup.\n");	
 		
-		buff_len=sizeof(buff);
+		nBuffLen=sizeof(szBuff);
 		while(1)
 		{
-			r_len=fread(buff,1,buff_len,fp_i);
-			if(r_len>0)
+			nRLen=fread(szBuff,1,nBuffLen,pFileIn);
+			if(nRLen>0)
 			{
-				w_len=fwrite(buff,1,r_len,fp_o);
-				if(w_len<r_len)
+				nWLen=fwrite(szBuff,1,nRLen,pFileOut);
+				if(nWLen<nRLen)
 				{
-					err_log("backup_file: fwrite %s fail\n",backup_name);
-					ret=1;
+					err_log("backup_file: fwrite %s fail\n",szBackupName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+					if(g_nDebug)	printf("7104:fwrinte fail.\n");	
+
+					nRe=1;
 					goto Exit_Pro;
 				}
 			}
-			if(r_len<buff_len)
+			if(nRLen<nBuffLen)
 			{
-				if( ferror(fp_i) )
+				if( ferror(pFileIn) )
 				{
-					err_log("backup_file: fread %s fail\n",tmp_file_name);
-					ret=1;
+					err_log("backup_file: fread %s fail\n",szTempFileName);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+					if(g_nDebug)	printf("7105:fread fail.\n");	
+					nRe=1;
 					goto Exit_Pro;
 				}
 				break;
@@ -1960,10 +2167,14 @@ int backup_file(collect_conf * p_collect_conf,char * remote_path,char * remote_f
 		}
 	} 	
 Exit_Pro:
-	if(fp_i!=NULL) fclose(fp_i);
-	if(fp_o!=NULL) fclose(fp_o);
+	if(pFileIn!=NULL) fclose(pFileIn);
+	if(pFileOut!=NULL) fclose(pFileOut);
+/************************************************************************/
+/*  Alur changed */
+/************************************************************************/
+	if(g_nDebug)	printf("7001:backup_file out\n");	
 	
-	return ret;
+	return nRe;
 }
 
 /*
@@ -2201,26 +2412,43 @@ int point_collect(int nConfLineNo,int nCurrentProcessNo)
 /************************************************************************/
 /* Alur changed*/
 /************************************************************************/			
+			if(g_nDebug)	printf("4002:Try to Execute get_remote_file.\n");
 			//ftp get文件
-			printf("Try to Execute get_remote_file.\n");
 			if(get_remote_file(&oMyCollectConf,szRemotePath,szRemoteFileName,&lFileSize)!=0)
 			{
 				err_log("point_collect: nConfLineNo=%d,szRemoteFileName=%s,get_remote_file FAIL\n",nConfLineNo,szRemoteFileName);
+/************************************************************************/
+/* Alur changed*/
+/************************************************************************/			
+				if(g_nDebug)	printf("4105:get_remote_file failed.\n");	
 				return 1;
 			}
 			//备份文件
 			if(backup_file(&oMyCollectConf,szRemotePath,szRemoteFileName)!=0)
 			{
 				err_log("point_collect: nConfLineNo=%d,szRemoteFileName=%s,backup_file FAIL\n",nConfLineNo,szRemoteFileName);
+/************************************************************************/
+/* Alur changed*/
+/************************************************************************/			
+				if(g_nDebug)	printf("4106:backup_file failed.-%s\n-%s\n",szRemotePath,szRemoteFileName);	
 				return 1;
 			}
 			
 			get_time(cEnd);
+/************************************************************************/
+/* Alur changed*/
+/************************************************************************/			
+			if(g_nDebug)	printf("4003:Try to Execute commit_file.\n");
 			
 			//提交文件
 			if(commit_file(&oMyCollectConf,szRemotePath,szRemoteFileName,cBegin,cEnd,lFileSize)!=0)
 			{
 				err_log("point_collect: nConfLineNo=%d,szRemoteFileName=%s,commit_file FAIL\n",nConfLineNo,szRemoteFileName);
+/************************************************************************/
+/* Alur changed*/
+/************************************************************************/			
+				if(g_nDebug)	printf("4107:commit_file failed.-%s\n-%s\n-%s\n-%s\n-%ld\n",
+					szRemotePath,szRemoteFileName,cBegin,cEnd,lFileSize);	
 				return 1;
 			}
 			
@@ -2228,9 +2456,18 @@ int point_collect(int nConfLineNo,int nCurrentProcessNo)
 		}
 		
 		err_log("point_collect: nConfLineNo=%d,parse_collect_conf return UNKNOW\n",nConfLineNo);
+/************************************************************************/
+/* Alur changed*/
+/************************************************************************/			
+		if(g_nDebug)	printf("4108:parse_collect_conf return UNKNOW.\n");	
+
 		return 1;
 	}
 	
+/************************************************************************/
+/* Alur changed*/
+/************************************************************************/			
+	if(g_nDebug)	printf("4004:point_collect out.\n");
 	
 	return 0;
 }
