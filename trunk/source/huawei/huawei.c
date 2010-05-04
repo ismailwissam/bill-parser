@@ -233,17 +233,20 @@ int huawei(char * in_file_name, char * out_file_name, int * rec_num)
 	t_cdr                  cdr;
 
 	/*每次读100条话单, 每条300字节定长*/
-        const int              cdr_len = 300;
-        const int              cdr_num_once = 100;
+    const int              cdr_len = 300;
+    const int              cdr_num_once = 100;
 	u_8                    buff[cdr_num_once][cdr_len];     
 	u_8                    *ptr=NULL;
+    u_8                    tmp_buf[64];
 
 	int                    serial_num;
 	int                    i, read_cdr_num;
 
-        u_32                   u32_num;
-        u_16                   u16_num;
-        u_32                   year, month, day, hour, minute, second;
+    u_32                   u32_num;
+    u_16                   u16_num;
+    size_t                 mem_len;
+    size_t                 num_len;
+    u_32                   year, month, day, hour, minute, second;
 
 	ret          = 0;
 	serial_num   = 0;
@@ -253,18 +256,18 @@ int huawei(char * in_file_name, char * out_file_name, int * rec_num)
 	fp_i = fopen(in_file_name, "r");
 	if(fp_i == NULL)
 	{
-        	err_log("huawei: fopen %s fail\n",in_file_name);
-        	ret = 1;
-        	goto Exit_Pro;
+        err_log("huawei: fopen %s fail\n",in_file_name);
+        ret = 1;
+        goto Exit_Pro;
 	}
 	
         /* open the output file for write */
 	fp_o = fopen(out_file_name, "w+");
 	if(fp_o == NULL)
 	{
-        	err_log("huawei: fopen %s fail\n",out_file_name);
-        	ret = 1;
-        	goto Exit_Pro;
+        err_log("huawei: fopen %s fail\n",out_file_name);
+        ret = 1;
+        goto Exit_Pro;
 	}
 
 	while(1)
@@ -280,120 +283,566 @@ int huawei(char * in_file_name, char * out_file_name, int * rec_num)
 
 				/* ******************** 提取话单记录 **************************************/
 				memset(&cdr, 0, sizeof(cdr));
-                                memcpy(&cdr, &buff[i][0], sizeof(cdr));
+                memcpy(&cdr, &buff[i][0], sizeof(cdr));
 	        		
 				/* ********************* 输出话单记录到文件 *******************************/
-                                // 流水号                                4         1-4       
-                                memset(&u32_num, 0, sizeof(u32_num));
-                                memcpy(&u32_num, &(cdr.bill_sequence_in_msc[0]), sizeof(u32_num));
-                                p_32_swap(&u32_num);
-	                        fprintf(fp_o, "%d,", u32_num);
+                // 流水号                                4         1-4       
+                memset(&u32_num, 0, sizeof(u32_num));
+                memcpy(&u32_num, &(cdr.bill_sequence_in_msc[0]), sizeof(u32_num));
+                p_32_swap(&u32_num);
+                fprintf(fp_o, "%d,", u32_num);
 
-                                // 模块内流水号                          4         5-8       
-                                memset(&u32_num, 0, sizeof(u32_num));
-                                memcpy(&u32_num, &(cdr.bill_sequence_in_module[0]), sizeof(u32_num));
-                                p_32_swap(&u32_num);
-	                        fprintf(fp_o, "%d,", u32_num);
+                // 模块内流水号                          4         5-8       
+                memset(&u32_num, 0, sizeof(u32_num));
+                memcpy(&u32_num, &(cdr.bill_sequence_in_module[0]), sizeof(u32_num));
+                p_32_swap(&u32_num);
+                fprintf(fp_o, "%d,", u32_num);
 
-                                // 模块号                                1         9         
-                                u32_num = cdr.module_no;
-                                fprintf(fp_o, "%d,", u32_num);
+                // 模块号                                1         9         
+                u32_num = cdr.module_no;
+                fprintf(fp_o, "%d,", u32_num);
 
-                                // 话单类型                              1         10        
-                                u32_num = cdr.cdr_type;
-                                fprintf(fp_o, "%d,", u32_num);
+                // 话单类型                              1         10        
+                u32_num = cdr.cdr_type;
+                fprintf(fp_o, "%d,", u32_num);
 
-                                // 通话起始时间                          7         11-17     
-                                memset(&u16_num, 0, sizeof(u16_num));
-                                memcpy(&u16_num, &(cdr.charge_start_time[0]), 2);
-                                p_16_swap(&u16_num);
-                                year = u16_num;
-                                month = cdr.charge_start_time[2];
-                                day = cdr.charge_start_time[3];
-                                hour = cdr.charge_start_time[4];
-                                minute = cdr.charge_start_time[5];
-                                second = cdr.charge_start_time[6];
-                                fprintf(fp_o, "'%d-%d-%d %d:%d:%d',", year, month, day, hour, minute, second);
+                // 通话起始时间                          7         11-17     
+                memset(&u16_num, 0, sizeof(u16_num));
+                memcpy(&u16_num, &(cdr.charge_start_time[0]), 2);
+                p_16_swap(&u16_num);
+                year = u16_num;
+                month = cdr.charge_start_time[2];
+                day = cdr.charge_start_time[3];
+                hour = cdr.charge_start_time[4];
+                minute = cdr.charge_start_time[5];
+                second = cdr.charge_start_time[6];
+                fprintf(fp_o, "'%d-%d-%d %d:%d:%d',", year, month, day, hour, minute, second);
 
-                                // 主叫号码                              14        18-31     
-                                // 被叫号码                              14        32-45     
-                                // 第三方号码                            14        46-59     
-                                // 被叫漫游号码                          8         60-67     
-                                // 被计费用户MSISDN                      8         68-75     
-                                // 被计费移动用户IMSI                    8         76-83     
-                                // 被计费移动用户IMEI                    8         84-91     
-                                // 入中继群号                            2         92-93     
-                                // 出中继群号                            2         94-95     
-                                // 通话时长                              4         96-99     
-                                // 首话单索引号                          4         100-103   
-                                // 中间话单序列号                        1         104       
-                                // 记录类型                              3b        105       
-                                // 用户类别                              5b        105       
-                                // 通话终止原因                          1         106       
-                                // 产生中间话单原因                      1         107       
-                                // 本局MSC号                             8         108-115   
-                                // 被计费用户当前所在MSC号               8         116-123   
-                                // 主叫用户当前位置区                    2         124-125   
-                                // 主叫用户当前小区                      2         126-127   
-                                // 主叫用户初始位置区                    2         128-129   
-                                // 主叫用户初始小区                      2         130-131   
-                                // 被叫用户当前位置区                    2         132-133   
-                                // 被叫用户当前小区                      2         134-135   
-                                // 被叫用户初始位置区                    2         136-137   
-                                // 被叫用户初始小区                      2         138-139   
-                                // 被计费移动用户呼叫参考                1         140       
-                                // 传输模式                              4b        141       
-                                // 电话业务或承载业务标志                4b        141       
-                                // 承载能力                              1         142       
-                                // 电话业务或承载业务码                  1         143       
-                                // 业务类别                              1         144       
-                                // 补充业务码1                           1         145        
-                                // 补充业务码2                           1         146         
-                                // 补充业务码3                           1         147         
-                                // 补充业务码4                           1         148         
-                                // 被计费移动用户初始CLASSMARK           3         149-151   
-                                // 被计费移动用户当前CLASSMARK           3         152-154   
-                                // 透明非透明指示                        2b        155       
-                                // 是否使用DTMF                          2b        155       
-                                // 计费免费标志                          4b        155       
-                                // 漫游标志                              1b        156       
-                                // 热计费标志                            1b        156       
-                                // 操作结果                              6b        156       
-                                // 费率指示                              2         157-158   
-                                // 费率                                  2         159-160   
-                                // 附加费                                2         161-162   
-                                // 该次呼叫占用的B信道数                 1         163       
-                                // 字节数                                4         164-167   
-                                // 短消息中心地址                        8         168-175   
-                                // 每个数据单元的字节数                  2         176-177   
-                                // 业务键                                4         178-181   
-                                // SCFID                                 5         182-186   
-                                // 保留字节                              1         187       
-                                // FCI信息                               40        188-227   
-                                // 移动呼叫参考号                        8         228-235   
-                                // 系统接入类型                          1         236
-                                // 速率指示                              1         237
-                                // 保留字节                              5         238-242
-                                // channel mode                          4b        243
-                                // channel                               4b        243
-                                // MAPByPassInd标识                      1b        244
-                                // Ro链路缺省呼叫处理                    2b        244
-                                // voBB 用户标识                         1b        244
-                                // 保留bit                               4b        244
-                                // 增强用户类别                          1         245
-                                // cARP值                                1         246
-                                // 用户逻辑计费区编码                    3         247-249
-                                // CMN标识                               1b        250
-                                // 释放方                                1         251
-                                // 费率码                                1         252
-                                // 网络接续号码                          14        253-266
-                                // 链路异常的时间戳                      7         267-273
-                                // 最近一次成功CCR操作的时间戳           7         274-280
-                                // 通话时间夏令时偏移                    1         281
-                                // 链路异常的时间夏令时偏移              1         282
-                                // 最近一次成功CCR操作的时间夏令时偏移   1         283
-                                // 保留位                                17        284-300
-                                
+                // 主叫号码                              14        18-31     
+                /* 号码计划 */
+                u32_num = cdr.calling_num[1] & 0x0F;
+                fprintf(fp_o, "%d,", u32_num);
+
+                /* 号码类型 */
+                u32_num = (cdr.calling_num[1] >> 4) & 0x7;
+                fprintf(fp_o, "%d,", u32_num);
+
+                /* 号码长度 */
+                //num_len = cdr.calling_num[2] & 0x1F;
+
+                /* 主叫号码 */
+                mem_len = 12;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.calling_num[3]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+
+                // 被叫号码                              14        32-45     
+                /* 号码计划 */
+                u32_num = cdr.dialed_num[1] & 0x0F;
+                fprintf(fp_o, "%d,", u32_num);
+
+                /* 号码类型 */
+                u32_num = (cdr.dialed_num[1] >> 4) & 0x7;
+                fprintf(fp_o, "%d,", u32_num);
+
+                /* 号码长度 */
+                //num_len = cdr.dialed_num[2] & 0x1F;
+
+                /* 被叫号码 */
+                mem_len = 12;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.dialed_num[3]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+               
+                // 第三方号码                            14        46-59     
+                /* 号码计划 */
+                u32_num = cdr.connected_num[1] & 0x0F;
+                fprintf(fp_o, "%d,", u32_num);
+
+                /* 号码类型 */
+                u32_num = (cdr.connected_num[1] >> 4) & 0x7;
+                fprintf(fp_o, "%d,", u32_num);
+
+                /* 号码长度 */
+                //num_len = cdr.connected_num[2] & 0x1F;
+
+                /* 第三方号码 */
+                mem_len = 12;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.connected_num[3]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+           
+                // 被叫漫游号码                          8         60-67     
+                mem_len = 8;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.msrn[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被计费用户MSISDN                      8         68-75     
+                mem_len = 8;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.served_msisdn[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+ 
+                // 被计费移动用户IMSI                    8         76-83     
+                mem_len = 8;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.served_imsi[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被计费移动用户IMEI                    8         84-91     
+                mem_len = 8;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.served_imei[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 入中继群号                            2         92-93     
+                memset(&u16_num, 0, sizeof(u16_num));
+                memcpy(&u16_num, &(cdr.incoming_trunk_group_id[0]), 2);
+                p_16_swap(&u16_num);
+                fprintf(fp_o, "%d,", u16_num);
+
+                // 出中继群号                            2         94-95     
+                memset(&u16_num, 0, sizeof(u16_num));
+                memcpy(&u16_num, &(cdr.outgoing_trunk_group_id[0]), 2);
+                p_16_swap(&u16_num);
+                fprintf(fp_o, "%d,", u16_num);
+                
+                // 通话时长                              4         96-99     
+                memset(&u32_num, 0, sizeof(u32_num));
+                memcpy(&u32_num, &(cdr.charge_duration[0]), sizeof(u32_num));
+                p_32_swap(&u32_num);
+                fprintf(fp_o, "%d,", u32_num);
+                
+                // 首话单索引号                          4         100-103   
+                memset(&u32_num, 0, sizeof(u32_num));
+                memcpy(&u32_num, &(cdr.index_of_first_cdr[0]), sizeof(u32_num));
+                p_32_swap(&u32_num);
+                fprintf(fp_o, "%d,", u32_num);
+                
+                // 中间话单序列号                        1         104       
+                u32_num = cdr.sequence_of_intermediate_cdr;
+                fprintf(fp_o, "%d,", u32_num);
+                
+                // 记录类型                              3b        105       
+                u32_num = cdr.record_user_type & 0x07;
+                fprintf(fp_o, "%d,", u32_num);
+                
+                // 用户类别                              5b        105       
+                u32_num = (cdr.record_user_type >> 3) & 0x1F;
+                fprintf(fp_o, "%d,", u32_num);
+                
+                // 通话终止原因                          1         106       
+                fprintf(fp_o, "%X,", cdr.cause_for_call_termination);
+                
+                // 产生中间话单原因                      1         107       
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                if (cdr.cause_for_intermediate_record & 0x01) 
+                {
+                    strcpy(tmp_buf, "TimeL");
+                }
+                else if (cdr.cause_for_intermediate_record & 0x02)
+                {
+                    strcpy(tmp_buf, "Tacl");
+                }
+                else if (cdr.cause_for_intermediate_record & 0x04)
+                {
+                    strcpy(tmp_buf, "SerL");
+                }
+                else if (cdr.cause_for_intermediate_record & 0x08)
+                {
+                    strcpy(tmp_buf, "RoLinkFail");
+                }
+
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 本局MSC号                             8         108-115   
+                mem_len = 8;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.local_msc_id[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被计费用户当前所在MSC号               8         116-123   
+                mem_len = 8;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.peer_msc_id[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 主叫用户当前位置区                    2         124-125   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.current_lac_of_caller[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 主叫用户当前小区                      2         126-127   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.current_ci_of_caller[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 主叫用户初始位置区                    2         128-129   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.initial_lac_of_caller[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 主叫用户初始小区                      2         130-131   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.initial_ci_of_caller[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被叫用户当前位置区                    2         132-133   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.current_lac_of_called[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被叫用户当前小区                      2         134-135   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.current_ci_of_called[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被叫用户初始位置区                    2         136-137   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.initial_lac_of_called[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被叫用户初始小区                      2         138-139   
+                mem_len = 2;
+                num_len = mem_len * 2;
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                bcdhextostr(tmp_buf, &(cdr.initial_ci_of_called[0]), mem_len);
+                for (i = 0; i < num_len; ++i) 
+                {
+                    if (*(tmp_buf + i) == 'f' || *(tmp_buf + 1) == 'F')
+                    {
+                        *(tmp_buf +i) = '\0';
+                        break;
+                    }
+                }
+                fprintf(fp_o, "%s,", tmp_buf);
+                
+                // 被计费移动用户呼叫参考                1         140       
+                fprintf(fp_o, "%X,", cdr.call_reference);
+                
+                // 传输模式                              4b        141       
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                u32_num = cdr.transmission_mode_tbs_flag & 0x0F;
+                if (u32_num == 0) 
+                {
+                    strcpy(tmp_buf, "FULL_RATE");
+                }
+                else if (u32_num == 1) 
+                {
+                    strcpy(tmp_buf, "HALF_RATE");
+                }
+                else 
+                {
+                    strcpy(tmp_buf, "UNKNOWN");
+                }
+                frpintf(fp_o, "%s,", tmp_buf);
+                
+                // 电话业务或承载业务标志                4b        141       
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                u32_num = (cdr.transmission_mode_tbs_flag >> 4) & 0x0F;
+                if (u32_num == 0) 
+                {
+                    strcpy(tmp_buf, "电话业务");
+                }
+                else if (u32_num == 1) 
+                {
+                    strcpy(tmp_buf, "承载业务");
+                }
+                else 
+                {
+                    strcpy(tmp_buf, "UNKNOWN");
+                }
+                frpintf(fp_o, "%s,", tmp_buf);
+               
+                // 承载能力                              1         142       
+                memset(tmp_buf, 0, sizeof(tmp_buf));
+                u32_num = cdr.bearer_capability;
+                if (u32_num == 0x00) 
+                {
+                    strcpy(tmp_buf, "SPEECH");
+                }
+                else if (u32_num == 0x03)
+                {
+                    strcpy(tmp_buf, "FASCIMILE_GROUP_3");
+                }
+                else if (u32_num == 0x07)
+                {
+                    strcpy(tmp_buf, "NETWORK_RESERVED");
+                }
+                else if (u32_num == 0x08) 
+                {
+                    strcpy(tmp_buf, "UNRESTRICTED_INFO");
+                }
+                else if (u32_num == 0x09)
+                {
+                    strcpy(tmp_buf, "RESTRICTED_INFO");
+                }
+                else if (u32_num == 0x10)
+                {
+                    strcpy(tmp_buf, "AUDIO");
+                }
+                else if (u32_num == 0x11)
+                {
+                    strcpy(tmp_buf, "UNRESTRICTED_WITH_TONES");
+                }
+                else if (u32_num == 0x18)
+                {
+                    strcpy(tmp_buf, "VIDEO");
+                }
+                else
+                {
+                    strcpy(tmp_buf, "UNKNOWN");
+                }
+                frpintf(fp_o, "%s,", tmp_buf);
+                
+                // 电话业务或承载业务码                  1         143       
+                
+                // 业务类别                              1         144       
+                
+                // 补充业务码1                           1         145        
+                
+                // 补充业务码2                           1         146         
+                
+                // 补充业务码3                           1         147         
+                
+                // 补充业务码4                           1         148         
+                
+                // 被计费移动用户初始CLASSMARK           3         149-151   
+                
+                // 被计费移动用户当前CLASSMARK           3         152-154   
+                
+                // 透明非透明指示                        2b        155       
+                
+                // 是否使用DTMF                          2b        155       
+                
+                // 计费免费标志                          4b        155       
+                
+                // 漫游标志                              1b        156       
+                
+                // 热计费标志                            1b        156       
+                
+                // 操作结果                              6b        156       
+                
+                // 费率指示                              2         157-158   
+                
+                // 费率                                  2         159-160   
+                
+                // 附加费                                2         161-162   
+                
+                // 该次呼叫占用的B信道数                 1         163       
+                
+                // 字节数                                4         164-167   
+                
+                // 短消息中心地址                        8         168-175   
+                
+                // 每个数据单元的字节数                  2         176-177   
+                
+                // 业务键                                4         178-181   
+                
+                // SCFID                                 5         182-186   
+                
+                // 保留字节                              1         187       
+                
+                // FCI信息                               40        188-227   
+                
+                // 移动呼叫参考号                        8         228-235   
+                
+                // 系统接入类型                          1         236
+                
+                // 速率指示                              1         237
+                
+                // 保留字节                              5         238-242
+                
+                // channel mode                          4b        243
+                
+                // channel                               4b        243
+                
+                // MAPByPassInd标识                      1b        244
+                
+                // Ro链路缺省呼叫处理                    2b        244
+                
+                // voBB 用户标识                         1b        244
+                
+                // 保留bit                               4b        244
+                
+                // 增强用户类别                          1         245
+                
+                // cARP值                                1         246
+                
+                // 用户逻辑计费区编码                    3         247-249
+                
+                // CMN标识                               1b        250
+                
+                // 释放方                                1         251
+                
+                // 费率码                                1         252
+                
+                // 网络接续号码                          14        253-266
+                
+                // 链路异常的时间戳                      7         267-273
+                
+                // 最近一次成功CCR操作的时间戳           7         274-280
+                
+                // 通话时间夏令时偏移                    1         281
+                
+                // 链路异常的时间夏令时偏移              1         282
+                
+                // 最近一次成功CCR操作的时间夏令时偏移   1         283
+                
+                // 保留位                                17        284-300
+                
 	                        fprintf(fp_o,"%s\n" ,cdr.exchange_id);
 			}
 		}
