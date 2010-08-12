@@ -25,7 +25,7 @@ my $PREFIX_RUN_LOG_FILE = "$LOG_DIR/log_parser_run";
 
 my $DB_SERVER = "obidb3_132";
 my $DB_USER = "obirawdb";
-my $DB_PASSWD = "obirawdb\$zj2010";
+my $DB_PASSWORD = "obirawdb\$zj2010";
 
 my $COLLECT_LOG_TABLE = "sys_bill_collect_log";
 my $PRETREAT_LOG_TABLE = "sys_bill_pretreat_log";
@@ -360,9 +360,7 @@ sub write_collect_log_csv
         $is_parse = $log_entry->{'is_parse'};
         $log_create_time = $log_entry->{'log_create_time'};
 
-        print $fh "$collect_point,$ne_name,$collect_path,$ori_file_name,\
-                  $cur_file_name,$file_size,'$file_create_time','$collect_time',\
-                  $is_backup,$is_parse,'$log_create_time'\n";
+        print $fh_csv "$collect_point,$ne_name,$collect_path,$ori_file_name,$cur_file_name,$file_size,'$file_create_time','$collect_time',$is_backup,$is_parse,'$log_create_time'\n";
     }
 
     # 关闭文件
@@ -506,8 +504,7 @@ sub write_pretreat_log_csv
         $parse_bill_num = $log_entry->{'parse_bill_num'};
         $log_create_time = $log_entry->{'log_create_time'};
 
-        print $fh_csv "$ne_name,$file_name,$file_size,'$parse_start_time','$parse_end_time',\
-                       $parse_bill_num, '$log_create_time'";
+        print $fh_csv "$ne_name,$file_name,$file_size,'$parse_start_time','$parse_end_time',$parse_bill_num, '$log_create_time'\n";
     }
 
     # 关闭文件
@@ -850,8 +847,7 @@ sub write_insert_log_csv
         $fail_bill_num = $log_entry->{'fail_bill_num'};
         $log_create_time = $log_entry->{'log_create_time'};
 
-        print $fh_csv "$ne_name,$log_file_name,$table_name,'$load_csv_time',\
-                       $succ_bill_num,$fail_bill_num,'$log_create_time'";
+        print $fh_csv "$ne_name,$log_file_name,$table_name,'$load_csv_time',$succ_bill_num,$fail_bill_num,'$log_create_time'\n";
     }
 
     # 关闭CSV文件
@@ -996,7 +992,7 @@ sub err_log
 
     open ERR_LOG, ">>$err_log_file";
     print ERR_LOG "------------------------------------------------------------------\n";
-    print ERR_LOG (strftime "%a %b %e %H:%M:%S %Y", localtime);
+    print ERR_LOG (strftime "%a %b %e %H:%M:%S %Y\n", localtime);
     print ERR_LOG $err_msg;
     close ERR_LOG;
 }
