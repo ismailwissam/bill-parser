@@ -1,1 +1,0 @@
-ps -ef|grep "collect "|grep -v grep|cut -c9-15|xargs kill -9
