@@ -1,0 +1,1 @@
+ps -ef|grep "log_parser "|grep -v grep|cut -c9-15|xargs kill -INT

@@ -1,0 +1,247 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+BOOL	common.h	/^typedef unsigned int BOOL;$/;"	t
+CC	Makefile	/^CC = gcc$/;"	m
+COLLECT_CONF	common.h	26;"	d
+CONF_DIR	common.h	22;"	d
+DEFAULT_COLLECT_DIR	common.h	14;"	d
+DEFAULT_DB_PASSWORD	common.h	18;"	d
+DEFAULT_DB_SERVER	common.h	19;"	d
+DEFAULT_DB_USER	common.h	17;"	d
+DEFAULT_PRETREAT_DIR	common.h	15;"	d
+DEFAULT_RUN_DIR	common.h	16;"	d
+ERR_LOG_FILE	common.h	25;"	d
+FALSE	common.h	27;"	d
+FTP_TIME_OUT	collect.c	42;"	d	file:
+Ftp_Cd	Ftp.h	/^int  Ftp_Cd(const char *directory);$/;"	p	signature:(const char *directory)
+Ftp_Cdup	Ftp.h	/^int  Ftp_Cdup(void);$/;"	p	signature:(void)
+Ftp_Close	Ftp.h	/^void Ftp_Close(void);$/;"	p	signature:(void)
+Ftp_Delete	Ftp.h	/^int  Ftp_Delete(const char *file_name);$/;"	p	signature:(const char *file_name)
+Ftp_Dir	Ftp.h	/^int  Ftp_Dir(const char *outfile_name);$/;"	p	signature:(const char *outfile_name)
+Ftp_Init	Ftp.h	/^int  Ftp_Init(const char *user_name,const char *passwd,const $/;"	p	signature:(const char *user_name,const char *passwd,const char *ip,int port,unsigned int time_out, int yesno_binary,int yesno_passive,int yesno_debug)
+Ftp_Mkdir	Ftp.h	/^int  Ftp_Mkdir(const char *dir_name);$/;"	p	signature:(const char *dir_name)
+Ftp_Nlist	Ftp.h	/^int  Ftp_Nlist(const char *outfile_name);$/;"	p	signature:(const char *outfile_name)
+Ftp_Pwd	Ftp.h	/^char *Ftp_Pwd(void);$/;"	p	signature:(void)
+Ftp_Receive	Ftp.h	/^int  Ftp_Receive(const char *remote_name,const char *local_name,$/;"	p	signature:(const char *remote_name,const char *local_name, off_t rpoint,long *suc_bytes)
+Ftp_Rename	Ftp.h	/^int  Ftp_Rename(const char *from_name,const char *to_name);$/;"	p	signature:(const char *from_name,const char *to_name)
+Ftp_Rmdir	Ftp.h	/^int  Ftp_Rmdir(const char *dir_name);$/;"	p	signature:(const char *dir_name)
+Ftp_Send	Ftp.h	/^int  Ftp_Send(const char *local_name,const char *remote_name,$/;"	p	signature:(const char *local_name,const char *remote_name, off_t rpoint,long *suc_bytes)
+Ftp_Size	Ftp.h	/^int  Ftp_Size(const char *remote_name);$/;"	p	signature:(const char *remote_name)
+LDFLAGS	Makefile	/^LDFLAGS = -L.\/$/;"	m
+LIBS	Makefile	/^LIBS = -ldl -lm -lz -lFtp -lresolv -lsocket -lnsl$/;"	m
+LOG_DIR	common.h	21;"	d
+MAX_BUFFER	common.h	7;"	d
+MAX_CHILD_PROCESS	common.h	12;"	d
+MAX_COMPANY	collect.c	37;"	d	file:
+MAX_DATE	common.h	10;"	d
+MAX_DEVICE	collect.c	38;"	d	file:
+MAX_FILENAME	common.h	5;"	d
+MAX_FILE_ELEM	pretreat.c	58;"	d	file:
+MAX_FILE_ELEM_NUM	pretreat.c	57;"	d	file:
+MAX_FTP_IP	collect.c	39;"	d	file:
+MAX_FTP_PWD	collect.c	41;"	d	file:
+MAX_FTP_USER	collect.c	40;"	d	file:
+MAX_LDR_FILE_NUM	insert.c	48;"	d	file:
+MAX_LONG_BUFFER	common.h	8;"	d
+MAX_LONG_FILENAME	common.h	6;"	d
+MAX_MODULE	pretreat.c	55;"	d	file:
+MAX_OUTFILE_NUM	pretreat.c	56;"	d	file:
+MAX_PARALLEL_TABLE	insert.c	47;"	d	file:
+MAX_TABLENAME	common.h	11;"	d
+MAX_TIME	common.h	9;"	d
+MODULE_DIR	common.h	24;"	d
+OBJECTS	Makefile	/^OBJECTS = $(SRCS:%.c=%.o)$/;"	m
+P	semctl.c	/^void P(void)$/;"	f	signature:(void)
+P	semctl.h	/^void         P(void);$/;"	p	signature:(void)
+PARSE_FAIL	common.h	/^	PARSE_FAIL 	= -1,$/;"	e	enum:parse_code
+PARSE_MATCH	common.h	/^	PARSE_MATCH	= 1,$/;"	e	enum:parse_code
+PARSE_UNMATCH	common.h	/^	PARSE_UNMATCH	= 2,$/;"	e	enum:parse_code
+PREFIX_RUN_LOG_FILE	collect.c	43;"	d	file:
+PREFIX_RUN_LOG_FILE	insert.c	45;"	d	file:
+PREFIX_RUN_LOG_FILE	pretreat.c	59;"	d	file:
+PROCESS_SLEEP_TIME	common.h	13;"	d
+SEMKEY	semctl.c	9;"	d	file:
+SRCS	Makefile	/^SRCS = $(wildcard .\/*.c) $/;"	m
+TABLE_LIST_CONFIG_FILE	insert.c	46;"	d	file:
+TARGET	Makefile	/^TARGET = ..\/..\/..\/release\/recollect\/recollect$/;"	m
+TEMPLATE_DIR	common.h	23;"	d
+TRUE	common.h	28;"	d
+V	semctl.c	/^void V(void)$/;"	f	signature:(void)
+V	semctl.h	/^void         V(void);$/;"	p	signature:(void)
+WORK_DIR	common.h	20;"	d
+_COLLECT_H_	collect.h	2;"	d
+_COMMON_H_	common.h	2;"	d
+_INSERT_H_	insert.h	2;"	d
+_PRETREAT_H_	pretreat.h	2;"	d
+_SEMCTL_H_	semctl.h	2;"	d
+__Ftp_	Ftp.h	13;"	d
+__anon1::backup_path	collect.c	/^	char  backup_path[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::collect_point	collect.c	/^	int   collect_point;$/;"	m	struct:__anon1	file:	access:public
+__anon1::company	collect.c	/^	char  company[MAX_COMPANY];$/;"	m	struct:__anon1	file:	access:public
+__anon1::current_process_number	collect.c	/^	int   current_process_number;$/;"	m	struct:__anon1	file:	access:public
+__anon1::device	collect.c	/^	char  device[MAX_DEVICE];$/;"	m	struct:__anon1	file:	access:public
+__anon1::end_time	collect.c	/^    char  end_time[MAX_TIME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::file_pre	collect.c	/^	char  file_pre[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::file_str	collect.c	/^	char  file_str[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::file_suf	collect.c	/^	char  file_suf[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::ip	collect.c	/^	char  ip[MAX_FTP_IP];$/;"	m	struct:__anon1	file:	access:public
+__anon1::is_backup	collect.c	/^	int   is_backup;$/;"	m	struct:__anon1	file:	access:public
+__anon1::is_commit	collect.c	/^	int   is_commit;$/;"	m	struct:__anon1	file:	access:public
+__anon1::is_interval_file	collect.c	/^	int   is_interval_file;$/;"	m	struct:__anon1	file:	access:public
+__anon1::is_multi_path	collect.c	/^	int   is_multi_path;  $/;"	m	struct:__anon1	file:	access:public
+__anon1::password	collect.c	/^	char  password[MAX_FTP_PWD];$/;"	m	struct:__anon1	file:	access:public
+__anon1::path_last	collect.c	/^	char  path_last[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::path_pre	collect.c	/^	char  path_pre[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::path_str	collect.c	/^	char  path_str[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::path_suf	collect.c	/^	char  path_suf[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::path_up	collect.c	/^	char  path_up[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::port	collect.c	/^	int   port; \/\/端口port:华为6621$/;"	m	struct:__anon1	file:	access:public
+__anon1::start_time	collect.c	/^    char  start_time[MAX_TIME];$/;"	m	struct:__anon1	file:	access:public
+__anon1::usr	collect.c	/^	char  usr[MAX_FTP_USER];$/;"	m	struct:__anon1	file:	access:public
+__anon2::handler_dlopen	pretreat.c	/^        void         * handler_dlopen;$/;"	m	struct:__anon2	file:	access:public
+__anon2::isload	pretreat.c	/^        int            isload;         \/\/       0 no     , 1 yes$/;"	m	struct:__anon2	file:	access:public
+__anon2::module_fun	pretreat.c	/^        funHandler   * module_fun;     \/\/return 0 success, 1 fail$/;"	m	struct:__anon2	file:	access:public
+__anon3::pid	common.h	/^	int pid;$/;"	m	struct:__anon3	access:public
+__anon3::sleep_time	common.h	/^	int sleep_time;$/;"	m	struct:__anon3	access:public
+backup_file	collect.c	/^static int			backup_file(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp);$/;"	p	file:	signature:(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp)
+backup_file	collect.c	/^static int backup_file(collect_conf * pCollectConf, const char * szRemoteFileName, const char* lpTimeStamp)$/;"	f	file:	signature:(collect_conf * pCollectConf, const char * szRemoteFileName, const char* lpTimeStamp)
+backup_path	collect.c	/^	char  backup_path[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+clear_dir_file	common.c	/^int clear_dir_file(const char * dir_name, const char * prefix, const char * suffix)$/;"	f	signature:(const char * dir_name, const char * prefix, const char * suffix)
+clear_dir_file	common.h	/^int clear_dir_file(const char * dir_name, const char * prefix, const char * suffix);$/;"	p	signature:(const char * dir_name, const char * prefix, const char * suffix)
+collect_conf	collect.c	/^} collect_conf; $/;"	t	typeref:struct:__anon1	file:
+collect_dir	common.c	/^char* collect_dir = NULL;$/;"	v
+collect_parallel_num	common.c	/^int collect_parallel_num = 1;$/;"	v
+collect_point	collect.c	/^	int   collect_point;$/;"	m	struct:__anon1	file:	access:public
+collect_point_num	common.c	/^int collect_point_num = 0;$/;"	v
+collect_task	collect.c	/^static void         collect_task(void);$/;"	p	file:	signature:(void)
+collect_task	collect.c	/^static void collect_task(void)$/;"	f	file:	signature:(void)
+commit_file	collect.c	/^static int			commit_file(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp);$/;"	p	file:	signature:(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp)
+commit_file	collect.c	/^static int commit_file(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp)$/;"	f	file:	signature:(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp)
+commit_file	insert.c	/^static int          commit_file(const char * in_file_name,  const char* in_dir_name, const char * begin_time, const char * end_time);$/;"	p	file:	signature:(const char * in_file_name, const char* in_dir_name, const char * begin_time, const char * end_time)
+commit_file	insert.c	/^static int commit_file(const char * in_file_name, const char* in_dir_name, const char * begin_time, const char * end_time)$/;"	f	file:	signature:(const char * in_file_name, const char* in_dir_name, const char * begin_time, const char * end_time)
+commit_file	pretreat.c	/^static int          commit_file(const char * in_file_name, const char * out_file_name, const char * begin_time, const char * end_time, long in_file_size, long rec_num);$/;"	p	file:	signature:(const char * in_file_name, const char * out_file_name, const char * begin_time, const char * end_time, long in_file_size, long rec_num)
+commit_file	pretreat.c	/^static int commit_file(const char * in_file_name, const char * out_file_name, const char * begin_time, const char * end_time, long in_file_size, long rec_num)$/;"	f	file:	signature:(const char * in_file_name, const char * out_file_name, const char * begin_time, const char * end_time, long in_file_size, long rec_num)
+company	collect.c	/^	char  company[MAX_COMPANY];$/;"	m	struct:__anon1	file:	access:public
+convert_date_hw	collect.c	/^static int		 	convert_date_hw(char* lpOutDateTime, const char* lpInTime, const char* lpInDate);$/;"	p	file:	signature:(char* lpOutDateTime, const char* lpInTime, const char* lpInDate)
+convert_date_hw	collect.c	/^static int convert_date_hw(char* lpOutDateTime, const char* lpInTime, const char* lpInDate)$/;"	f	file:	signature:(char* lpOutDateTime, const char* lpInTime, const char* lpInDate)
+convert_date_hw_sp6	collect.c	/^static int			convert_date_hw_sp6(char* lpOutDateTime, char* lpInTime, const char* lpInDate);$/;"	p	file:	signature:(char* lpOutDateTime, char* lpInTime, const char* lpInDate)
+convert_date_hw_sp6	collect.c	/^static int convert_date_hw_sp6(char* lpOutDateTime, char* lpInTime, const char* lpInDate)$/;"	f	file:	signature:(char* lpOutDateTime, char* lpInTime, const char* lpInDate)
+convert_date_nsn	collect.c	/^static int			convert_date_nsn(char* lpOutDateTime, const char* lpInTime, const char* lpInDate);$/;"	p	file:	signature:(char* lpOutDateTime, const char* lpInTime, const char* lpInDate)
+convert_date_nsn	collect.c	/^static int convert_date_nsn(char* lpOutDateTime, const char* lpInTime, const char* lpInDate)$/;"	f	file:	signature:(char* lpOutDateTime, const char* lpInTime, const char* lpInDate)
+current_process_number	collect.c	/^	int   current_process_number;$/;"	m	struct:__anon1	file:	access:public
+db_password	common.c	/^char* db_password = NULL;$/;"	v
+db_server	common.c	/^char* db_server = NULL;$/;"	v
+db_user	common.c	/^char* db_user = NULL;$/;"	v
+debug	common.c	/^int debug = 0;$/;"	v
+device	collect.c	/^	char  device[MAX_DEVICE];$/;"	m	struct:__anon1	file:	access:public
+end_time	collect.c	/^    char  end_time[MAX_TIME];$/;"	m	struct:__anon1	file:	access:public
+err_log	common.c	/^int err_log(const char * format, ...)$/;"	f	signature:(const char * format, ...)
+err_log	common.h	/^int err_log(const char * format, ...);$/;"	p	signature:(const char * format, ...)
+file_pre	collect.c	/^	char  file_pre[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+file_str	collect.c	/^	char  file_str[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+file_suf	collect.c	/^	char  file_suf[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+funHandler	pretreat.c	/^typedef int funHandler(char *, char *, int *);  \/\/in_file_name, out_file_name, rec_num$/;"	t	file:
+get_backup_name	collect.c	/^static int			get_backup_name(collect_conf * pCollectConf, const char * szRemoteFileName, const char* lpTimeStamp, char * szBackupName);$/;"	p	file:	signature:(collect_conf * pCollectConf, const char * szRemoteFileName, const char* lpTimeStamp, char * szBackupName)
+get_backup_name	collect.c	/^static int get_backup_name(collect_conf * pCollectConf,const char * szRemoteFileName,const char* lpTimeStamp,char * szBackupName)$/;"	f	file:	signature:(collect_conf * pCollectConf,const char * szRemoteFileName,const char* lpTimeStamp,char * szBackupName)
+get_collect_conf	collect.c	/^static parse_code_e get_collect_conf(int nCollectPointNo, int nCurrentProcessNumber, collect_conf * pCollectConf);$/;"	p	file:	signature:(int nCollectPointNo, int nCurrentProcessNumber, collect_conf * pCollectConf)
+get_collect_conf	collect.c	/^static parse_code_e get_collect_conf(int nCollectPointNo,int nCurrentProcessNumber,collect_conf * pCollectConf)$/;"	f	file:	signature:(int nCollectPointNo,int nCurrentProcessNumber,collect_conf * pCollectConf)
+get_file	collect.c	/^static int			get_file(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size);$/;"	p	file:	signature:(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size)
+get_file	collect.c	/^static int get_file(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size)$/;"	f	file:	signature:(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size)
+get_in_dir_name	insert.c	/^static parse_code_e get_in_dir_name(const char * dir_name, const char * prefix, const char * suffix, char * ret_dir_list);$/;"	p	file:	signature:(const char * dir_name, const char * prefix, const char * suffix, char * ret_dir_list)
+get_in_dir_name	insert.c	/^static parse_code_e get_in_dir_name(const char * dir_name, const char * prefix,const char * suffix, char * ret_dir_list)$/;"	f	file:	signature:(const char * dir_name, const char * prefix,const char * suffix, char * ret_dir_list)
+get_in_file_name	pretreat.c	/^static parse_code_e get_in_file_name(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name)$/;"	f	file:	signature:(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name)
+get_in_file_name	pretreat.c	/^static parse_code_e get_in_file_name(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name);$/;"	p	file:	signature:(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name)
+get_ne_name	insert.c	/^static int          get_ne_name(const char * original_file_name, char * ret_ne_name);$/;"	p	file:	signature:(const char * original_file_name, char * ret_ne_name)
+get_ne_name	insert.c	/^static int get_ne_name(const char * original_file_name, char * ret_ne_name)$/;"	f	file:	signature:(const char * original_file_name, char * ret_ne_name)
+get_ne_name	pretreat.c	/^static int          get_ne_name(const char * original_file_name, char * ret_ne_name);$/;"	p	file:	signature:(const char * original_file_name, char * ret_ne_name)
+get_ne_name	pretreat.c	/^static int get_ne_name(const char * original_file_name, char * ret_ne_name)$/;"	f	file:	signature:(const char * original_file_name, char * ret_ne_name)
+get_orig_file_name	common.c	/^parse_code_e get_orig_file_name(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name)$/;"	f	signature:(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name)
+get_orig_file_name	common.h	/^parse_code_e get_orig_file_name(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name);$/;"	p	signature:(const char * dir_name, const char * prefix, const char * suffix, char * ret_file_name)
+get_relative_module_no	pretreat.c	/^static int          get_relative_module_no(const char * in_file_name, int * module_no);$/;"	p	file:	signature:(const char * in_file_name, int * module_no)
+get_relative_module_no	pretreat.c	/^static int get_relative_module_no(const char * in_file_name, int * module_no)$/;"	f	file:	signature:(const char * in_file_name, int * module_no)
+get_table_name	insert.c	/^static int          get_table_name(int index, char * ret_table_name);$/;"	p	file:	signature:(int index, char * ret_table_name)
+get_table_name	insert.c	/^static int get_table_name(int index, char * ret_table_name)$/;"	f	file:	signature:(int index, char * ret_table_name)
+get_table_num	insert.c	/^static int          get_table_num(int * ret_table_num);$/;"	p	file:	signature:(int * ret_table_num)
+get_table_num	insert.c	/^static int get_table_num(int * ret_table_num)$/;"	f	file:	signature:(int * ret_table_num)
+get_time	common.c	/^int get_time(char * par)$/;"	f	signature:(char * par)
+get_time	common.h	/^int get_time(char * par);$/;"	p	signature:(char * par)
+handler_dlopen	pretreat.c	/^        void         * handler_dlopen;$/;"	m	struct:__anon2	file:	access:public
+insert	insert.c	/^static int          insert(const char * in_dir_name);$/;"	p	file:	signature:(const char * in_dir_name)
+insert	insert.c	/^static int insert(const char * in_dir_name)$/;"	f	file:	signature:(const char * in_dir_name)
+insert_parallel_num	common.c	/^int insert_parallel_num = 1;$/;"	v
+insert_task	insert.c	/^static int          insert_task(void);$/;"	p	file:	signature:(void)
+insert_task	insert.c	/^static int insert_task(void)$/;"	f	file:	signature:(void)
+ip	collect.c	/^	char  ip[MAX_FTP_IP];$/;"	m	struct:__anon1	file:	access:public
+is_backup	collect.c	/^	int   is_backup;$/;"	m	struct:__anon1	file:	access:public
+is_collect_finished	pretreat.c	/^BOOL         is_collect_finished = FALSE;$/;"	v
+is_commit	collect.c	/^	int   is_commit;$/;"	m	struct:__anon1	file:	access:public
+is_interval_file	collect.c	/^	int   is_interval_file;$/;"	m	struct:__anon1	file:	access:public
+is_multi_path	collect.c	/^	int   is_multi_path;  $/;"	m	struct:__anon1	file:	access:public
+is_pretreat_finished	insert.c	/^BOOL         is_pretreat_finished   = FALSE;$/;"	v
+isload	pretreat.c	/^        int            isload;         \/\/       0 no     , 1 yes$/;"	m	struct:__anon2	file:	access:public
+load_module	pretreat.c	/^static int          load_module(void);$/;"	p	file:	signature:(void)
+load_module	pretreat.c	/^static int load_module(void)$/;"	f	file:	signature:(void)
+main	main.c	/^int main(int argc, char * argv[])$/;"	f	signature:(int argc, char * argv[])
+module	pretreat.c	/^t_module     module[MAX_MODULE];$/;"	v
+module_fun	pretreat.c	/^        funHandler   * module_fun;     \/\/return 0 success, 1 fail$/;"	m	struct:__anon2	file:	access:public
+parse_code	common.h	/^typedef enum parse_code {$/;"	g
+parse_code_e	common.h	/^} parse_code_e;$/;"	t	typeref:enum:parse_code
+password	collect.c	/^	char  password[MAX_FTP_PWD];$/;"	m	struct:__anon1	file:	access:public
+path_last	collect.c	/^	char  path_last[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+path_pre	collect.c	/^	char  path_pre[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+path_str	collect.c	/^	char  path_str[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+path_suf	collect.c	/^	char  path_suf[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+path_up	collect.c	/^	char  path_up[MAX_FILENAME];$/;"	m	struct:__anon1	file:	access:public
+pid	common.h	/^	int pid;$/;"	m	struct:__anon3	access:public
+point_collect	collect.c	/^static int			point_collect(int nCollectPointNo, int nCurrentProcessNo);$/;"	p	file:	signature:(int nCollectPointNo, int nCurrentProcessNo)
+point_collect	collect.c	/^static int point_collect(int nCollectPointNo,int nCurrentProcessNo)$/;"	f	file:	signature:(int nCollectPointNo,int nCurrentProcessNo)
+port	collect.c	/^	int   port; \/\/端口port:华为6621$/;"	m	struct:__anon1	file:	access:public
+pre_suf_check	common.c	/^parse_code_e pre_suf_check(const char * name, const char * prefix, const char * suffix)$/;"	f	signature:(const char * name, const char * prefix, const char * suffix)
+pre_suf_check	common.h	/^parse_code_e pre_suf_check(const char * name, const char * prefix, const char * suffix);$/;"	p	signature:(const char * name, const char * prefix, const char * suffix)
+pretreat	pretreat.c	/^static int          pretreat(const char * in_file_name);$/;"	p	file:	signature:(const char * in_file_name)
+pretreat	pretreat.c	/^static int pretreat(const char * in_file_name)$/;"	f	file:	signature:(const char * in_file_name)
+pretreat_dir	common.c	/^char* pretreat_dir = NULL;$/;"	v
+pretreat_parallel_num	common.c	/^int pretreat_parallel_num = 1;$/;"	v
+pretreat_task	pretreat.c	/^static int          pretreat_task(void);$/;"	p	file:	signature:(void)
+pretreat_task	pretreat.c	/^static int pretreat_task(void)$/;"	f	file:	signature:(void)
+process_collect	collect.c	/^static int          process_collect(int current_number, int parallel_number);$/;"	p	file:	signature:(int current_number, int parallel_number)
+process_collect	collect.c	/^static int process_collect(int current_number,int parallel_number)$/;"	f	file:	signature:(int current_number,int parallel_number)
+process_insert	insert.c	/^static void         process_insert(int current_number, int parallel_number);$/;"	p	file:	signature:(int current_number, int parallel_number)
+process_insert	insert.c	/^static void process_insert(int current_number, int parallel_number)$/;"	f	file:	signature:(int current_number, int parallel_number)
+process_pretreat	pretreat.c	/^static void         process_pretreat(void);$/;"	p	file:	signature:(void)
+process_pretreat	pretreat.c	/^static void process_pretreat(void)$/;"	f	file:	signature:(void)
+progname	main.c	/^char*               progname = NULL;$/;"	v
+run_dir	common.c	/^char* run_dir = NULL;$/;"	v
+run_log	collect.c	/^static int			run_log(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long file_size, const char* lpTimeStamp);$/;"	p	file:	signature:(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long file_size, const char* lpTimeStamp)
+run_log	collect.c	/^static int run_log(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long file_size, const char* lpTimeStamp)$/;"	f	file:	signature:(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long file_size, const char* lpTimeStamp)
+sem_init	semctl.c	/^int sem_init(void)$/;"	f	signature:(void)
+sem_init	semctl.h	/^int          sem_init(void);$/;"	p	signature:(void)
+sigusr1_handler	insert.c	/^static void         sigusr1_handler(int signum);$/;"	p	file:	signature:(int signum)
+sigusr1_handler	insert.c	/^static void sigusr1_handler(int signum)$/;"	f	file:	signature:(int signum)
+sigusr1_handler	pretreat.c	/^static void         sigusr1_handler(int signum);$/;"	p	file:	signature:(int signum)
+sigusr1_handler	pretreat.c	/^static void sigusr1_handler(int signum)$/;"	f	file:	signature:(int signum)
+sleep_time	common.h	/^	int sleep_time;$/;"	m	struct:__anon3	access:public
+sleep_time	insert.c	/^int          sleep_time             = 5;$/;"	v
+start_collect_task	collect.c	/^int start_collect_task(void)$/;"	f	signature:(void)
+start_collect_task	collect.h	/^int start_collect_task(void);$/;"	p	signature:(void)
+start_insert_task	insert.c	/^int start_insert_task(void)$/;"	f	signature:(void)
+start_insert_task	insert.h	/^int start_insert_task(void);$/;"	p	signature:(void)
+start_pretreat_task	pretreat.c	/^int start_pretreat_task(void)$/;"	f	signature:(void)
+start_pretreat_task	pretreat.h	/^int start_pretreat_task(void);$/;"	p	signature:(void)
+start_time	collect.c	/^    char  start_time[MAX_TIME];$/;"	m	struct:__anon1	file:	access:public
+t_child_process_status	common.h	/^} t_child_process_status;$/;"	t	typeref:struct:__anon3
+t_module	pretreat.c	/^} t_module;$/;"	t	typeref:struct:__anon2	file:
+table_list_num	insert.c	/^int          table_list_num         = 0;$/;"	v
+usage	main.c	/^static void         usage(int status);$/;"	p	file:	signature:(int status)
+usage	main.c	/^static void usage(int status)$/;"	f	file:	signature:(int status)
+usr	collect.c	/^	char  usr[MAX_FTP_USER];$/;"	m	struct:__anon1	file:	access:public
+valid_in_file_name	pretreat.c	/^static int          valid_in_file_name(const char * in_file_name);$/;"	p	file:	signature:(const char * in_file_name)
+valid_in_file_name	pretreat.c	/^static int valid_in_file_name(const char * in_file_name)$/;"	f	file:	signature:(const char * in_file_name)
+valid_out_file_name_and_get_folder_name	pretreat.c	/^static int          valid_out_file_name_and_get_folder_name(const char * out_file_name, char * ret_folder_name);$/;"	p	file:	signature:(const char * out_file_name, char * ret_folder_name)
+valid_out_file_name_and_get_folder_name	pretreat.c	/^static int valid_out_file_name_and_get_folder_name(const char * out_file_name, char * ret_folder_name)$/;"	f	file:	signature:(const char * out_file_name, char * ret_folder_name)
+verify_collect_conf	collect.c	/^int verify_collect_conf(int * ret_point_num)$/;"	f	signature:(int * ret_point_num)
+verify_collect_conf	collect.h	/^int verify_collect_conf(int * ret_point_num);$/;"	p	signature:(int * ret_point_num)

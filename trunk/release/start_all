@@ -1,0 +1,3 @@
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/start_collect
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/pretreat/start_pretreat
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/insert/start_insert

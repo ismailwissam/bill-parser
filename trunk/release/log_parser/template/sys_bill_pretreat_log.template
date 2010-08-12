@@ -1,0 +1,17 @@
+load data
+infile "./work/sys_bill_pretreat_log.csv"
+append
+into table sys_bill_pretreat_log
+fields terminated by ","
+Optionally enclosed by "'"
+trailing nullcols
+(
+  ne_name            ,
+  file_name          ,
+  file_size          ,
+  parse_start_time   date 'YYYY-MM-DD HH24:MI:SS', 
+  parse_end_time     date 'YYYY-MM-DD HH24:MI:SS',
+  parse_bill_num     ,
+  log_create_time    date 'YYYY-MM-DD HH24:MI:SS',
+  load_time sysdate
+)

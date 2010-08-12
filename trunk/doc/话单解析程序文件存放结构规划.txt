@@ -1,0 +1,90 @@
+话单解析程序文件存放结构规划
+
+1、数据文件的存放路径
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/collect/	存放原始话单文件
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/preteat/      存放解析后的CSV文件
+
+
+1、备份文件的存放路径
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/backup/collect/厂家/端局	备份原始话单文件
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/backup/preteat/厂家/端局     备份解析后的CSV文件
+
+
+3、源代码的存放路径
+/opt/BOCO.DAL/RT_MON/zj-bll-parser/src
+                                    |
+                                    |---build.sh 编译发布脚本
+                                    |
+                                    |---clean.sh 清理脚本
+                                    |
+                                    |---/source 核心源代码目录
+                                    |       |
+                                    |       |---/collect 采集程序源代码目录
+                                    |       |
+                                    |       |---/gsm_i 入库程序源代码目录
+                                    |       |
+                                    |       |---/pretreat 解析程序核心框架源代码目录
+                                    |       |
+                                    |       |---/huawei 解析程序huawei模块源代码目录
+                                    |       |
+                                    |       |---/nokia 解析程序nokia模块源代码目录
+                                    |       |
+                                    |       |---/... 解析程序其他模块源代码目录
+                                    |        
+                                    |---/helper
+                                            |
+                                            |---/asn1c asn1编译工具目录
+
+
+4、发布程序的存放路径
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release
+                                         |
+                                         |---/collect 采集程序目录
+                                         |        |
+                                         |        |---collect 采集主程序
+                                         |        |
+                                         |        |---start_collect 启动主程序
+                                         |        |
+                                         |        |---stop_collect 终止主程序
+                                         |        |
+                                         |        |---Readme_collect.txt 程序说明文档
+                                         |        |
+                                         |        |---/conf 配置目录
+                                         |        |
+                                         |        |---/log 日志目录
+                                         |       
+                                         |---/pretreat 解析程序目录
+                                         |        |
+                                         |        |---pretreat 解析主程序
+                                         |        |
+                                         |        |---start_pretreat 启动主程序
+                                         |        |
+                                         |        |---stop_pretreat 终止主程序
+                                         |        |
+                                         |        |---Readme_pretreat.txt 程序说明文档
+                                         |        |
+                                         |        |---/module 各个话单类型解析模块存放目录
+                                         |        |
+                                         |        |---/conf 配置目录
+                                         |        |
+                                         |        |---/log 日志目录
+                                         |        |
+                                         |        |---/work 临时工作目录
+                                         |
+                                         |---/insert 入库程序目录
+                                                  |
+                                                  |---insert 入库主程序
+                                                  |
+                                                  |---start_insert 启动主程序
+                                                  |
+                                                  |---stop_insert 终止主程序
+                                                  |
+                                                  |---Readme_insert.txt 程序说明文档
+                                                  |
+                                                  |---/template 存放control模板文件
+                                                  |
+                                                  |---/log 日志目录
+                                                  |
+                                                  |---/work 临时工作目录
+                                                  
+                                                  

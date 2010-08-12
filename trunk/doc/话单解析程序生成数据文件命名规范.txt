@@ -1,0 +1,20 @@
+话单解析程序生成数据文件命名规范
+
+1、原始话单文件：
+       采集点编号_厂家_端局_原文件名
+
+实例：
+huawei:000001_hw_hzgs2_xxxxxx
+
+nokia: 000002_nsn_nbogs1_xxxxxx
+
+
+2、CSV文件：
+huawei:采集点编号_厂家_端局_话单生成日期(MMDD)_原文件名.csv
+实例： 000001_hw_hzgs2_0514_xxxxxx.csv
+
+nokia: 采集点编号_厂家_端局_话单类型_话单生成日期(MMDD)_原文件名.csv
+实例： 000002_nsn_nbogs1_moc_0514_xxxxxx.csv
+
+原文件名指话单文件在ftp服务器上的文件名
+

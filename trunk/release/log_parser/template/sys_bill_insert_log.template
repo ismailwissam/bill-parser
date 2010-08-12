@@ -1,0 +1,18 @@
+load data
+infile "./work/sys_bill_insert_log.csv"
+append
+into table sys_bill_insert_log
+fields terminated by ","
+Optionally enclosed by "'"
+trailing nullcols
+(
+  ne_name            ,
+  log_file_name      ,
+  table_name         ,
+  load_csv_time      date 'YYYY-MM-DD HH24:MI:SS',
+  load_csv_num       ,
+  succ_bill_num      ,
+  fail_bill_num      ,
+  log_create_time    date 'YYYY-MM-DD HH24:MI:SS',
+  load_time sysdate
+)
