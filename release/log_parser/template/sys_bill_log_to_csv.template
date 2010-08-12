@@ -1,0 +1,12 @@
+load data
+infile "./work/sys_bill_log_to_csv.csv"
+append
+into table sys_bill_log_to_csv
+fields terminated by ","
+Optionally enclosed by "'"
+trailing nullcols
+(
+  log_file_name            ,
+  load_csv_name            ,
+  load_time sysdate
+)

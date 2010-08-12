@@ -1,0 +1,1 @@
+ps -ef|grep "collect_except "|grep -v grep|cut -c9-15|xargs kill -INT

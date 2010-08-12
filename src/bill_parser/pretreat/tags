@@ -1,0 +1,84 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+CC	Makefile	/^CC = gcc$/;"	m
+CONF	pretreat.c	44;"	d	file:
+DEFAULT_IN_DIR	pretreat.c	39;"	d	file:
+DEFAULT_OUT_DIR	pretreat.c	40;"	d	file:
+DEFAULT_RUN_DIR	pretreat.c	41;"	d	file:
+ERR_LOG_FILE	pretreat.c	45;"	d	file:
+LIBS	Makefile	/^LIBS = -ldl$/;"	m
+LOG	pretreat.c	43;"	d	file:
+MAX_BUFFER	pretreat.c	36;"	d	file:
+MAX_CHILD_PROCESS	pretreat.c	34;"	d	file:
+MAX_DATE	pretreat.c	37;"	d	file:
+MAX_FILENAME	pretreat.c	35;"	d	file:
+MAX_MODULE	pretreat.c	33;"	d	file:
+MAX_OUTFILE_NUM	pretreat.c	47;"	d	file:
+OBJECTS	Makefile	/^OBJECTS = $(SRCS:%.c=%.o)$/;"	m
+P	pretreat.c	/^static void P(void)$/;"	f	file:	signature:(void)
+P	pretreat.c	/^static void P(void);$/;"	p	file:	signature:(void)
+PARSE_FAIL	pretreat.c	/^	PARSE_FAIL 	= -1,$/;"	e	enum:parse_code	file:
+PARSE_MATCH	pretreat.c	/^	PARSE_MATCH	= 1,$/;"	e	enum:parse_code	file:
+PARSE_UNMATCH	pretreat.c	/^	PARSE_UNMATCH	= 2,$/;"	e	enum:parse_code	file:
+PREFIX_RUN_LOG_FILE	pretreat.c	46;"	d	file:
+SEMKEY	pretreat.c	32;"	d	file:
+SLEEP_TIME	pretreat.c	38;"	d	file:
+SRCS	Makefile	/^SRCS = $(wildcard .\/*.c) $/;"	m
+TARGET	Makefile	/^TARGET = ..\/..\/..\/release\/pretreat\/pretreat$/;"	m
+V	pretreat.c	/^static void V(void)$/;"	f	file:	signature:(void)
+V	pretreat.c	/^static void V(void);$/;"	p	file:	signature:(void)
+WORK	pretreat.c	42;"	d	file:
+__anon1::pid	pretreat.c	/^	int  pid;$/;"	m	struct:__anon1	file:	access:public
+__anon1::sleep_time	pretreat.c	/^	int  sleep_time;$/;"	m	struct:__anon1	file:	access:public
+__anon2::handler_dlopen	pretreat.c	/^        void         * handler_dlopen;$/;"	m	struct:__anon2	file:	access:public
+__anon2::isload	pretreat.c	/^        int            isload;         \/\/       0 no     , 1 yes$/;"	m	struct:__anon2	file:	access:public
+__anon2::module_fun	pretreat.c	/^        funHandler   * module_fun;     \/\/return 0 success, 1 fail$/;"	m	struct:__anon2	file:	access:public
+clear_dir_file	pretreat.c	/^static int clear_dir_file(char * dir_name, char * prefix, char * suffix)$/;"	f	file:	signature:(char * dir_name, char * prefix, char * suffix)
+clear_dir_file	pretreat.c	/^static int clear_dir_file(char * dir_name, char * prefix, char * suffix);$/;"	p	file:	signature:(char * dir_name, char * prefix, char * suffix)
+commit_file	pretreat.c	/^static int commit_file(char * in_file_name, char * out_file_name, char * begin, char * end, long in_file_size, long rec_num)$/;"	f	file:	signature:(char * in_file_name, char * out_file_name, char * begin, char * end, long in_file_size, long rec_num)
+commit_file	pretreat.c	/^static int commit_file(char * in_file_name, char * out_file_name, char * begin, char * end, long in_file_size, long rec_num);$/;"	p	file:	signature:(char * in_file_name, char * out_file_name, char * begin, char * end, long in_file_size, long rec_num)
+curr_process_number	pretreat.c	/^int          curr_process_number    = 0;$/;"	v
+daemon_start	pretreat.c	/^static void daemon_start(void)$/;"	f	file:	signature:(void)
+daemon_start	pretreat.c	/^static void daemon_start(void);$/;"	p	file:	signature:(void)
+debug	pretreat.c	/^int          debug                  = 0;$/;"	v
+err_log	pretreat.c	/^static void err_log(char * format, ...)$/;"	f	file:	signature:(char * format, ...)
+err_log	pretreat.c	/^static void err_log(char * format, ...);$/;"	p	file:	signature:(char * format, ...)
+file_in_dir	pretreat.c	/^char *       file_in_dir            = NULL;$/;"	v
+file_out_dir	pretreat.c	/^char *       file_out_dir           = NULL;$/;"	v
+funHandler	pretreat.c	/^typedef int funHandler(char *, char *, int *);  \/\/in_file_name, out_file_name, rec_num$/;"	t	file:
+get_in_file_name	pretreat.c	/^static parse_code_e get_in_file_name(int parallel_number, char * dir_name, char * prefix, char * suffix, char * ret_file_name)$/;"	f	file:	signature:(int parallel_number, char * dir_name, char * prefix, char * suffix, char * ret_file_name)
+get_in_file_name	pretreat.c	/^static parse_code_e get_in_file_name(int parallel_number, char * dir_name, char * prefix, char * suffix, char * ret_file_name);$/;"	p	file:	signature:(int parallel_number, char * dir_name, char * prefix, char * suffix, char * ret_file_name)
+get_orig_file_name	pretreat.c	/^static parse_code_e get_orig_file_name(char * dir_name, char * prefix, char * suffix, char * ret_file_name)$/;"	f	file:	signature:(char * dir_name, char * prefix, char * suffix, char * ret_file_name)
+get_orig_file_name	pretreat.c	/^static parse_code_e get_orig_file_name(char * dir_name, char * prefix, char * suffix, char * ret_file_name);$/;"	p	file:	signature:(char * dir_name, char * prefix, char * suffix, char * ret_file_name)
+get_relative_module_no	pretreat.c	/^static int get_relative_module_no(char * in_file_name, int * module_no)$/;"	f	file:	signature:(char * in_file_name, int * module_no)
+get_relative_module_no	pretreat.c	/^static int get_relative_module_no(char * in_file_name, int * module_no);$/;"	p	file:	signature:(char * in_file_name, int * module_no)
+get_time	pretreat.c	/^static int get_time(char * par)$/;"	f	file:	signature:(char * par)
+get_time	pretreat.c	/^static int get_time(char * par);$/;"	p	file:	signature:(char * par)
+handler_dlopen	pretreat.c	/^        void         * handler_dlopen;$/;"	m	struct:__anon2	file:	access:public
+isload	pretreat.c	/^        int            isload;         \/\/       0 no     , 1 yes$/;"	m	struct:__anon2	file:	access:public
+load_module	pretreat.c	/^static int load_module(void)$/;"	f	file:	signature:(void)
+load_module	pretreat.c	/^static int load_module(void);$/;"	p	file:	signature:(void)
+main	pretreat.c	/^int main(int argc, char * argv[])$/;"	f	signature:(int argc, char * argv[])
+module	pretreat.c	/^t_module     module[MAX_MODULE];$/;"	v
+module_fun	pretreat.c	/^        funHandler   * module_fun;     \/\/return 0 success, 1 fail$/;"	m	struct:__anon2	file:	access:public
+parallel_child_process	pretreat.c	/^int          parallel_child_process = 1;$/;"	v
+parse_code	pretreat.c	/^typedef enum parse_code {$/;"	g	file:
+parse_code_e	pretreat.c	/^} parse_code_e;$/;"	t	typeref:enum:parse_code	file:
+pid	pretreat.c	/^	int  pid;$/;"	m	struct:__anon1	file:	access:public
+pre_suf_check	pretreat.c	/^static parse_code_e pre_suf_check(char * name, char * prefix, char * suffix)$/;"	f	file:	signature:(char * name, char * prefix, char * suffix)
+pre_suf_check	pretreat.c	/^static parse_code_e pre_suf_check(char * name, char * prefix, char * suffix);$/;"	p	file:	signature:(char * name, char * prefix, char * suffix)
+pretreat	pretreat.c	/^static int pretreat(char * in_file_name)$/;"	f	file:	signature:(char * in_file_name)
+pretreat	pretreat.c	/^static int pretreat(char * in_file_name);$/;"	p	file:	signature:(char * in_file_name)
+process_pretreat	pretreat.c	/^static void process_pretreat(int current_number, int parallel_number)$/;"	f	file:	signature:(int current_number, int parallel_number)
+process_pretreat	pretreat.c	/^static void process_pretreat(int current_number, int parallel_number);$/;"	p	file:	signature:(int current_number, int parallel_number)
+progname	pretreat.c	/^char *       progname               = NULL;$/;"	v
+run_dir	pretreat.c	/^char *       run_dir                = NULL;$/;"	v
+sleep_time	pretreat.c	/^	int  sleep_time;$/;"	m	struct:__anon1	file:	access:public
+t_child_process_status	pretreat.c	/^} t_child_process_status;$/;"	t	typeref:struct:__anon1	file:
+t_module	pretreat.c	/^} t_module;$/;"	t	typeref:struct:__anon2	file:
+usage	pretreat.c	/^static void usage(int status)$/;"	f	file:	signature:(int status)
+usage	pretreat.c	/^static void usage(int status);$/;"	p	file:	signature:(int status)

@@ -1,0 +1,1 @@
+ps -ef|grep "recollect "|grep -v grep|cut -c9-15|xargs kill -9

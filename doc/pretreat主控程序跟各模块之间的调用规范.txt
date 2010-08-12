@@ -1,0 +1,42 @@
+pretreat主控程序跟各模块之间的调用接口
+
+1、主控程序和各模块的发布形式
+
+pretreat主控程序以可执行文件形式发布，各个模块以xxx.so动态链接库形式发布，在运行时pretreat主控程序会自动加载这些动态链接库。
+
+
+2、主控程序和各模块的之间的调用接口
+
+pretreat主控程序以下面形式调用各模块的对外接口函数，相应地各模块也要严格按照该形式定义自己的对外接口：
+int funHandler(char * in_file_name, char * out_file_name, int * record_num);
+
+参数说明：
+(1)in_file_name: 输入参数，要解析的原始话单文件名（包含路径）；
+
+(2)out_file_name: 输入输出参数，输入时存放CSV文件的生成路径，输出时把生成的所有CSV文件名追加到路径后面返回；要保证在接口外部分配足够的内存空间来存放所需要内容。
+   输入描述：CSV文件生成路径
+       示例：/opt/BOCO.DAL/path_to_save_csv
+
+   输出描述：CSV文件生成路径:CSV文件1;CSV文件2;CSV文件3[;...]
+       示例：/opt/BOCO.DAL/path_to_save_csv:csv_file1;csv_file2;csv_file3
+
+(3)record_num: 输出参数，用来返回解析的所有话单数目
+
+返回值说明：
+0：处理成功
+非0：处理失败
+
+
+3、主控程序和各模块的命名规范
+主控程序命名：pretreat
+
+模块命名：没有强制要求，因为模块名称和接口名称可以在配置文件进行配置。但模块和接口的命名也要遵循一定的原则，要体现处理话单的厂家、格式或者类型，而且模块名称和接口名称要保持一致。例如：
+
+动态链接库名称		接口名称
+huawei.so  		huawei
+nokia.so      		nokia
+huawei_asn1.so          huawei_asn1
+
+以上原则作为设计规范的一部分，各个模块必须遵循这些原则进行设计和实现。
+
+

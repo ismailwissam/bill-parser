@@ -1,0 +1,21 @@
+load data
+infile "./work/sys_bill_collect_log.csv"
+append
+into table sys_bill_collect_log
+fields terminated by ","
+Optionally enclosed by "'"
+trailing nullcols
+(
+  collect_point      ,
+  ne_name            ,
+  collect_path       ,
+  ori_file_name      ,
+  cur_file_name      ,
+  file_size          ,
+  file_create_time   date 'YYYY-MM-DD HH24:MI:SS',
+  collect_time       date 'YYYY-MM-DD HH24:MI:SS', 
+  is_backup          ,
+  is_parse           ,
+  log_create_time    date 'YYYY-MM-DD HH24:MI:SS',
+  load_time sysdate
+)

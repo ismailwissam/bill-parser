@@ -1,0 +1,2 @@
+ps -ef|grep "insert "|grep -v grep|cut -c9-15|xargs kill -INT 
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/insert/insert -i/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/pretreat -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/insert -usa -wbocosa -sBJCDRPAR -p10
