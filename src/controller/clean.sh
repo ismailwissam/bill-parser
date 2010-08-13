@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-rm -f ../../release/controller/bill_parser_controller
+rm -f ../../release/controller/controller

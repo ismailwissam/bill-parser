@@ -15,8 +15,6 @@ my $LOG_DIR = "./log";
 my $CONFIG_DIR = "./conf";
 
 my $ERR_LOG_FILE = "$LOG_DIR/controller_err";
-my $PREFIX_RUN_LOG_FILE = "$LOG_DIR/controller_run";
-
 my $CONFIG_FILE = "$CONFIG_DIR/controller.conf";
 
 use constant
@@ -30,7 +28,7 @@ my $g_RunPath = './';
 my $g_TermFlag = FALSE;
 
 # 注册信号处理函数
-$SIG{SIGINT} = sub { $g_TermFlag = TRUE; }
+$SIG{SIGINT} = sub { $g_TermFlag = TRUE; };
 
 # 程序入口
 main();
@@ -76,7 +74,7 @@ sub main
 
     # 加载配置信息
     my $ref_config = load_config($CONFIG_FILE);
-    if(!defined $ref_conf)
+    if(!defined $ref_config)
     {
         err_log("main: load config fail\n");
         die "load config fail\n";
@@ -321,17 +319,7 @@ sub err_log
 {
     my $err_msg = shift;
 
-    my $err_log_file;
-    if($g_CurrentProcessNo != 0)
-    {
-        $err_log_file = sprintf("%s.%03d", $ERR_LOG_FILE, $g_CurrentProcessNo);
-    }
-    else
-    {
-        $err_log_file = $ERR_LOG_FILE;
-    }
-
-    open ERR_LOG, ">>$err_log_file";
+    open ERR_LOG, ">>$ERR_LOG_FILE";
     print ERR_LOG "------------------------------------------------------------------\n";
     print ERR_LOG (strftime "%a %b %e %H:%M:%S %Y", localtime);
     print ERR_LOG $err_msg;
