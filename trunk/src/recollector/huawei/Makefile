@@ -1,6 +1,6 @@
 # Makefile for huawei
 
-TARGET = ../../../release/recollect/module/huawei.so
+TARGET = ../../../release/recollector/module/huawei.so
 SRCS = $(wildcard ./*.c)
 OBJECTS = $(SRCS:%.c=%.o)
 
