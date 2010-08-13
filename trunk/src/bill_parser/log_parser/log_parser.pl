@@ -23,9 +23,9 @@ my $WORK_DIR = "./work";
 my $ERR_LOG_FILE = "$LOG_DIR/log_parser_err";
 my $PREFIX_RUN_LOG_FILE = "$LOG_DIR/log_parser_run";
 
-my $DB_SERVER = "obidb3_132";
-my $DB_USER = "obirawdb";
-my $DB_PASSWORD = "obirawdb\$zj2010";
+my $DB_SERVER = 'obidb3_132';
+my $DB_USER = 'obirawdb';
+my $DB_PASSWORD = 'obirawdb\$zj2010';
 
 my $COLLECT_LOG_TABLE = "sys_bill_collect_log";
 my $PRETREAT_LOG_TABLE = "sys_bill_pretreat_log";
@@ -254,7 +254,7 @@ sub parse_collect_run_log
     my $parse_date = shift;
     my $collect_log_data;
 
-    print "===>begin collect run log parsing task...\n";
+    print "===>begin collect run log parsing task...\n\n";
 
     # 
     # 获取所有要处理的日志文件，并循环解析
@@ -377,15 +377,11 @@ sub load_collect_log_csv
     my $load_time = get_time();
 
     # 调用sqlldr工具完成入库
-    my $cmd = "sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER \
-               control=$COLLECT_LOG_TEMPLATE \
-               log=$LOG_DIR/$COLLECT_LOG_TABLE\_$load_time\_sqlldr.log \
-               bad=$LOG_DIR/$COLLECT_LOG_TABLE\_$load_time\_sqlldr.bad > /dev/null";
+    my @results = `sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER control=$COLLECT_LOG_TEMPLATE log=$LOG_DIR/$COLLECT_LOG_TABLE\_$load_time\_sqlldr.log bad=$LOG_DIR/$COLLECT_LOG_TABLE\_$load_time\_sqlldr.bad`;
 
-    if(system(cmd) != 0)
+    if(@results == 0)
     {
-        err_log("load_collect_log_csv: system $cmd fail\n");
-        return FALSE;
+	    return FALSE;
     }
 
     return TRUE;
@@ -399,7 +395,7 @@ sub parse_pretreat_run_log
     my $parse_date = shift;
     my $pretreat_log_data;
 
-    print "===>begin pretreat run log parsing task...\n";
+    print "===>begin pretreat run log parsing task...\n\n";
 
     # 
     # 获取所有要处理的日志文件，并循环解析
@@ -521,15 +517,11 @@ sub load_pretreat_log_csv
     my $load_time = get_time();
 
     # 调用sqlldr工具完成入库
-    my $cmd = "sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER \
-               control=$PRETREAT_LOG_TEMPLATE \
-               log=$LOG_DIR/$PRETREAT_LOG_TABLE\_$load_time\_sqlldr.log \
-               bad=$LOG_DIR/$PRETREAT_LOG_TABLE\_$load_time\_sqlldr.bad > /dev/null";
+    my @results = `sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER control=$PRETREAT_LOG_TEMPLATE log=$LOG_DIR/$PRETREAT_LOG_TABLE\_$load_time\_sqlldr.log bad=$LOG_DIR/$PRETREAT_LOG_TABLE\_$load_time\_sqlldr.bad`;
 
-    if(system(cmd) != 0)
+    if(@results == 0)
     {
-        err_log("load_pretreat_log_csv: system $cmd fail\n");
-        return FALSE;
+	    return FALSE;
     }
 
     return TRUE;
@@ -543,7 +535,7 @@ sub parse_insert_run_log
     my $parse_date = shift;
     my $insert_run_log_data;
  
-    print "===>begin the insert run log parsing task...\n";
+    print "===>begin the insert run log parsing task...\n\n";
 
     # 
     # 获取所有要处理的日志文件，并循环解析
@@ -610,7 +602,7 @@ sub parse_insert_sqlldr_log
     my $parse_date = shift;
     my $insert_sqlldr_log_data;
 
-    print "===>begin the insert sqlldr log parsing task...\n";
+    print "===>begin the insert sqlldr log parsing task...\n\n";
 
     # 
     # 获取所有要处理的日志文件，并循环解析
@@ -847,7 +839,7 @@ sub write_insert_log_csv
         $fail_bill_num = $log_entry->{'fail_bill_num'};
         $log_create_time = $log_entry->{'log_create_time'};
 
-        print $fh_csv "$ne_name,$log_file_name,$table_name,'$load_csv_time',$succ_bill_num,$fail_bill_num,'$log_create_time'\n";
+        print $fh_csv "$ne_name,$log_file_name,$table_name,'$load_csv_time',$load_csv_num,$succ_bill_num,$fail_bill_num,'$log_create_time'\n";
     }
 
     # 关闭CSV文件
@@ -864,15 +856,11 @@ sub load_insert_log_csv
     my $load_time = get_time();
 
     # 调用sqlldr工具完成入库
-    my $cmd = "sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER \
-               control=$INSERT_LOG_TEMPLATE \
-               log=$LOG_DIR/$INSERT_LOG_TABLE\_$load_time\_sqlldr.log \
-               bad=$LOG_DIR/$INSERT_LOG_TABLE\_$load_time\_sqlldr.bad > /dev/null";
+    my @results = `sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER control=$INSERT_LOG_TEMPLATE log=$LOG_DIR/$INSERT_LOG_TABLE\_$load_time\_sqlldr.log bad=$LOG_DIR/$INSERT_LOG_TABLE\_$load_time\_sqlldr.bad`;
 
-    if(system(cmd) != 0)
+    if(@results == 0)
     {
-        err_log("load_insert_log_csv: system $cmd fail\n");
-        return FALSE;
+	    return FALSE;
     }
 
     return TRUE;
@@ -917,15 +905,11 @@ sub load_log_to_csv_csv
     my $load_time = get_time();
 
     # 调用sqlldr工具完成入库
-    my $cmd = "sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER \
-               control=$LOG_TO_CSV_TEMPLATE \
-               log=$LOG_DIR/$LOG_TO_CSV_TABLE\_$load_time\_sqlldr.log \
-               bad=$LOG_DIR/$LOG_TO_CSV_TABLE\_$load_time\_sqlldr.bad > /dev/null";
+    my @results = `sqlldr $DB_USER/$DB_PASSWORD\@$DB_SERVER control=$LOG_TO_CSV_TEMPLATE log=$LOG_DIR/$LOG_TO_CSV_TABLE\_$load_time\_sqlldr.log bad=$LOG_DIR/$LOG_TO_CSV_TABLE\_$load_time\_sqlldr.bad`;
 
-    if(system(cmd) != 0)
+    if(@results == 0)
     {
-        err_log("load_log_to_csv_csv: system $cmd fail\n");
-        return FALSE;
+	    return FALSE;
     }
 
     return TRUE;
