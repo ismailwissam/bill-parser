@@ -28,7 +28,7 @@ my $g_RunPath = './';
 my $g_TermFlag = FALSE;
 
 # 注册信号处理函数
-$SIG{SIGINT} = sub { $g_TermFlag = TRUE; };
+$SIG{INT} = sub { $g_TermFlag = TRUE; };
 
 # 程序入口
 main();
@@ -83,24 +83,32 @@ sub main
     # 进入守护状态
     daemon_start();
 
+    print "Preparing to start ...\n\n";
+
     # 监控进程状态
     while(1)
     {
         # 监控采集进程
         if( !detect_collect_process() )
         {
+            print "Preparing to start collect process ...\n\n";
+
             start_collect_process($ref_config->{'Path'}->{'collect_run_path'});
         }
 
         # 监控解析进程
         if( !detect_pretreat_process() )
         {
+            print "Preparing to start pretreat process ...\n\n";
+
             start_pretreat_process($ref_config->{'Path'}->{'pretreat_run_path'});
         }
 
         # 监控入库进程
         if( !detect_insert_process() )
         {
+            print "Preparing to start insert process ...\n\n";
+
             start_insert_process($ref_config->{'Path'}->{'insert_run_path'});
         }
 
@@ -109,20 +117,27 @@ sub main
         {
             if( detect_collect_process() )
             {
+	        print "Preparing to stop collect process ...\n\n";
+
                 stop_collect_process($ref_config->{'Path'}->{'collect_run_path'});
             }
 
             if( detect_pretreat_process() )
             {
+	        print "Preparing to stop pretreat process ...\n\n";
+
                 stop_pretreat_process($ref_config->{'Path'}->{'pretreat_run_path'});
             }
 
             if( detect_insert_process() )
             {
+	        print "Preparing to stop insert process ...\n\n";
+
                 stop_insert_process($ref_config->{'Path'}->{'insert_run_path'});
             }
 
             # 退出
+	    print "Preparing to exit ...\n\n";
             last;
         }
 
@@ -193,7 +208,7 @@ sub start_collect_process
 {
     my $collect_run_path = shift;
 
-    system "$collect_run_path/start_collect";
+    `$collect_run_path/start_collect`;
 }
 
 # 
@@ -202,7 +217,7 @@ sub start_collect_process
 sub stop_collect_process
 {
     my $collect_run_path = shift;
-    system "$collect_run_path/stop_collect";
+    `$collect_run_path/stop_collect`;
 }
 
 #
@@ -231,7 +246,7 @@ sub detect_pretreat_process
 sub start_pretreat_process
 {
     my $pretreat_run_path = shift;
-    system "$pretreat_run_path/start_pretreat";
+    `$pretreat_run_path/start_pretreat`;
 }
 
 # 
@@ -240,7 +255,7 @@ sub start_pretreat_process
 sub stop_pretreat_process
 {
     my $pretreat_run_path = shift;
-    system "$pretreat_run_path/stop_pretreat";
+    `$pretreat_run_path/stop_pretreat`;
 }
 
 #
@@ -269,7 +284,7 @@ sub detect_insert_process
 sub start_insert_process
 {
     my $insert_run_path = shift;
-    system "$insert_run_path/start_insert";
+    `$insert_run_path/start_insert`;
 }
 
 # 
@@ -278,7 +293,7 @@ sub start_insert_process
 sub stop_insert_process
 {
     my $insert_run_path = shift;
-    system "$insert_run_path/stop_insert";
+    `$insert_run_path/stop_insert`;
 }
 
 # 
@@ -321,7 +336,7 @@ sub err_log
 
     open ERR_LOG, ">>$ERR_LOG_FILE";
     print ERR_LOG "------------------------------------------------------------------\n";
-    print ERR_LOG (strftime "%a %b %e %H:%M:%S %Y", localtime);
+    print ERR_LOG (strftime "[%a %b %e %H:%M:%S %Y] ", localtime);
     print ERR_LOG $err_msg;
     close ERR_LOG;
 }
