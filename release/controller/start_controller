@@ -1,0 +1,3 @@
+#!/bin/csh
+source ~/.cshrc
+perl /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/controller/controller -r /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/controller
