@@ -1,6 +1,6 @@
 # Makefile for nokia
 
-TARGET = ../../../release/recollect/module/nokia.so
+TARGET = ../../../release/recollector/module/nokia.so
 SRCS = $(wildcard ./*.c)
 OBJECTS = $(SRCS:%.c=%.o)
 

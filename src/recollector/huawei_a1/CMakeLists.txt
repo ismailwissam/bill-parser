@@ -8,8 +8,8 @@ PROJECT("huawei_a1" CXX)
 
 # 设置可执行文件输出路径路径
 #
-SET(EXECUTABLE_OUTPUT_PATH  ${PROJECT_SOURCE_DIR}/../../../release/recollect/module)
-SET(LIBRARY_OUTPUT_PATH     ${PROJECT_SOURCE_DIR}/../../../release/recollect/module)
+SET(EXECUTABLE_OUTPUT_PATH  ${PROJECT_SOURCE_DIR}/../../../release/recollector/module)
+SET(LIBRARY_OUTPUT_PATH     ${PROJECT_SOURCE_DIR}/../../../release/recollector/module)
 
 SET(CMAKE_SHARED_LINKER_FLAGS "-mimpure-text  -Wl")
 
