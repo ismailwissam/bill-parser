@@ -19,6 +19,10 @@
 /*     代码重构，修正程序Bug                                              */
 /*     修正日志输出方案，以采集点为存放单位变更为以MSC设备名称为存放单位  */
 /*     修正采集开始时间方案，变更为实时数据采集                           */
+/*                                                                        */
+/* v1.3 2010.8 wangxiaohui                                                */
+/*     解决两个不能正常Ftp采集的Msc：hzgs4, tzhds2。                      */
+/*     针对这两个网元，Ftp的传输模式由被动模式调整为主动模式，其他不变。  */
 /**************************************************************************/
 
 /************************************************************************/
@@ -144,7 +148,8 @@ static int			point_collect(int nCollectPointNo, int nCurrentProcessNo);
 static int		 	convert_date_hw(char* lpOutDateTime, const char* lpInTime, const char* lpInDate);
 static int			convert_date_hw_sp6(char* lpOutDateTime, char* lpInTime, const char* lpInDate);
 static int			convert_date_nsn(char* lpOutDateTime, const char* lpInTime, const char* lpInDate);
-static int			get_file(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size);
+static int			get_file_passive(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size);
+static int			get_file_port(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size);
 static int			backup_file(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp);
 static int			commit_file(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp);
 static int			get_backup_name(collect_conf * pCollectConf, const char * szRemoteFileName, const char* lpTimeStamp, char * szBackupName);
@@ -1097,8 +1102,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
     }
 
     //处理文件 
-	if (0 == strncmp("hzgs4", curCollectConf.device, 5) ||
-        0 == strncmp("hzgs6", curCollectConf.device, 5) || 
+	if (0 == strncmp("hzgs6", curCollectConf.device, 5) || 
 		0 == strncmp("hzgs11", curCollectConf.device, 6) || 
 		0 == strncmp("hzgs20", curCollectConf.device, 6) || 
 		0 == strncmp("nbogs22", curCollectConf.device, 7) || 
@@ -1113,8 +1117,6 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 		0 == strncmp("huzds1", curCollectConf.device, 6) || 
 		0 == strncmp("hzgs9", curCollectConf.device, 5))
 	{
-		/* 华为特殊MSC设备的采集 */
-
 		/* 删除旧的目录列表文件 */
 		if( 0 == access(szDirListFile, F_OK) )
 		{
@@ -1291,9 +1293,9 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //下载文件
-				if(get_file(&curCollectConf, szFileTimeStampPre, szContent[3], &lFileSize)!=0)
+				if(get_file_passive(&curCollectConf, szFileTimeStampPre, szContent[3], &lFileSize)!=0)
 				{
-					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file FAIL\n",nCollectPointNo,szContent[3]);
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_passive FAIL\n",nCollectPointNo,szContent[3]);
 					nRet = 1;		
 					goto Exit_Pro;
 				}
@@ -1330,6 +1332,448 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			}
 		}
 	}
+    else if(0 == strncmp("hzgs4", curCollectConf.device, 5))
+    {
+		/* 华为特殊MSC设备的采集 */
+
+		/* 删除旧的目录列表文件 */
+		if( 0 == access(szDirListFile, F_OK) )
+		{
+			if(0 != unlink(szDirListFile))
+			{
+				err_log("point_collect: unlink %s fail\n",szDirListFile);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+		}
+
+        /* 建立Ftp连接 */
+        nRetVal = Ftp_Init(curCollectConf.usr,curCollectConf.password,curCollectConf.ip,
+                            curCollectConf.port,FTP_TIME_OUT,1,0,g_nDebug);
+        if(nRetVal != 0)
+        {
+            err_log("point_collect: Ftp_Init fail,collect_point=%d\n%s\n%s\n%s\n%s\n",
+                curCollectConf.collect_point,curCollectConf.ip,curCollectConf.port,curCollectConf.usr,curCollectConf.password);
+            nRet = 1;		
+            goto Exit_Pro;
+        }
+
+		/* 获取目录列表 */
+		nRetVal = Ftp_Dir(szDirListFile);
+		if( 0 != nRetVal )
+		{
+			err_log("point_collect: collect_point=%d,Ftp_Dir fail,%s",curCollectConf.collect_point,szDirListFile);
+			nRet = 1;		
+			goto Exit_Pro;
+		}
+
+        /* 关闭Ftp连接 */
+		Ftp_Close();
+
+		//打开文件
+		pFileDirList = fopen( szDirListFile , "r" );
+		if(pFileDirList == NULL)
+		{
+			err_log("point_collect: fopen %s fail\n",szDirListFile);
+			nRet = 1;
+			goto Exit_Pro;
+		}
+
+		//循环进入目录
+		while (1)
+		{		
+			//获取一行配置
+			memset(szBuff, 0 , sizeof(szBuff));
+			memset(szContent, 0 , sizeof(szContent));
+			if(fgets(szBuff, sizeof(szBuff), pFileDirList) == NULL )
+				break;
+
+			//应该是 4 个参数
+			if( sscanf(szBuff,"%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3]) != 4 )
+				continue;
+
+			//判断是否要进入
+			if ( NULL == strstr(szContent[2], "DIR") ) //目录
+			{
+				continue;	
+			}
+			if ( '2' != szContent[3][0] || '0' != szContent[3][1] )	//以20开头
+			{
+				continue;	
+			}
+			if ( 8 != strlen(szContent[3])) //8位长
+			{
+				continue;	
+			}
+			strcpy(szFileTimeStampPre, szContent[3]);
+			if ( 0 < strncmp(szTimePointPre, szFileTimeStampPre, 8))
+			{
+				continue;	
+			}
+	
+			/* 删除旧的下载文件列表文件 */
+			if( 0 == access(szFileListFile, F_OK) )
+			{
+				if(0 != unlink(szFileListFile))
+				{
+					err_log("point_collect: unlink %s fail\n",szDirListFile);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+			}			
+
+			/* 建立Ftp连接 */
+			nRetVal = Ftp_Init(curCollectConf.usr,curCollectConf.password,curCollectConf.ip,
+				curCollectConf.port,FTP_TIME_OUT,1,0,g_nDebug);
+			if(nRetVal != 0)
+			{
+				err_log("point_collect: Ftp_Init fail,collect_point=%d\n%s\n%s\n%s\n%s\n",
+					curCollectConf.collect_point,curCollectConf.ip,curCollectConf.port,curCollectConf.usr,curCollectConf.password);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+			//进入目录
+			nRetVal = Ftp_Cd(szContent[3]);
+			if( 0 != nRetVal )
+			{
+				err_log("point_collect: Ftp_Cd fail,collect_point=%d,dir=%s\n",curCollectConf.collect_point,szContent[8]);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+			/* 获取最新的下载文件列表 */
+			nRetVal = Ftp_Dir(szFileListFile);
+			if( 0 != nRetVal )
+			{
+				err_log("point_collect: collect_point=%d,Ftp_Dir fail",curCollectConf.collect_point);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+            /* 关闭Ftp连接 */
+			Ftp_Close();
+
+			//打开文件
+			pFileFileList = fopen( szFileListFile , "r" );
+			if(szFileListFile == NULL)
+			{
+				err_log("point_collect: fopen %s fail\n",szFileListFile);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+			//循环下载
+			while (1)
+			{
+				//获取一行配置
+				memset(szBuff, 0 , sizeof(szBuff));
+				memset(szContent, 0 , sizeof(szContent));
+				if(fgets(szBuff, sizeof(szBuff), pFileFileList) == NULL )
+				{
+					break;
+				}
+
+				//应该是4个参数
+				if(sscanf(szBuff,"%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3]) != 4 )
+					continue;
+
+                //如果是旧的话单文件，就不再下载
+                if(strncmp(szContent[3], "gz", 2) != 0)
+                {
+                    continue;
+                }
+
+				//判断是否要下载
+				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileTimeStampPre))//拿到文件时间戳
+				{
+					continue;
+				}
+
+				if ( 0 < strncmp(szTimePoint, szFileTimeStamp, 14)) //比较时间
+				{
+					continue;	
+				}
+
+				if(get_backup_name(&curCollectConf,szContent[3],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
+				{
+					err_log("point_collect: get_backup_name fail\n");
+					nRet = 1;
+					goto Exit_Pro;
+				}
+				if(0 == access(szBackupFile,F_OK))  //文件存在就不下载
+				{
+					//给时间戳到临时时间端点
+					if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
+					{
+						strcpy(szTempTimePoint, szFileTimeStamp);
+					}
+					continue;
+				}
+
+                //下载文件
+				if(get_file_port(&curCollectConf, szFileTimeStampPre, szContent[3], &lFileSize)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_port FAIL\n",nCollectPointNo,szContent[3]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //备份文件
+				if(backup_file(&curCollectConf, szContent[3], szFileTimeStamp)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,backup_file FAIL\n",nCollectPointNo,szContent[3]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //提交文件
+				if(commit_file(&curCollectConf, szContent[3], szFileTimeStamp)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,commit_file FAIL\n",nCollectPointNo,szContent[3]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //记录日志
+				if(run_log(&curCollectConf,szFileTimeStampPre,szContent[3],lFileSize,szFileTimeStamp)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[3]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //给时间戳到临时时间端点
+				if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
+				{
+					strcpy(szTempTimePoint, szFileTimeStamp);
+				}
+			}
+		}
+    }
+    else if(0 == strncmp("tzhds2", curCollectConf.device, 6))
+    {
+		/* 删除旧的目录列表文件 */
+		if( 0 == access(szDirListFile, F_OK) )
+		{
+			if(0 != unlink(szDirListFile))
+			{
+				err_log("point_collect: unlink %s fail\n",szDirListFile);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+		}
+
+        /* 建立Ftp连接 */
+        nRetVal = Ftp_Init(curCollectConf.usr,curCollectConf.password,curCollectConf.ip,
+                            curCollectConf.port,FTP_TIME_OUT,1,0,g_nDebug);
+        if(nRetVal != 0)
+        {
+            err_log("point_collect: Ftp_Init fail,collect_point=%d\n%s\n%s\n%s\n%s\n",
+                curCollectConf.collect_point,curCollectConf.ip,curCollectConf.port,curCollectConf.usr,curCollectConf.password);
+            nRet = 1;		
+            goto Exit_Pro;
+        }
+
+		/* 获取最新的目录列表 */
+		nRetVal = Ftp_Dir(szDirListFile);
+		if( 0 != nRetVal )
+		{
+			err_log("point_collect: collect_point=%d,Ftp_Dir fail,%s",curCollectConf.collect_point,szDirListFile);
+			nRet = 1;		
+			goto Exit_Pro;
+		}
+
+        /* 关闭Ftp连接 */
+		Ftp_Close();
+
+		//打开文件
+		pFileDirList = fopen( szDirListFile , "r" );
+		if(pFileDirList == NULL)
+		{
+			err_log("point_collect: fopen %s fail\n",szDirListFile);
+			nRet = 1;
+			goto Exit_Pro;
+		}
+
+		//循环进入目录
+		while (1)
+		{		
+			//获取一行配置
+			memset(szBuff, 0 , sizeof(szBuff));
+			memset(szContent, 0 , sizeof(szContent));
+			if(fgets(szBuff, sizeof(szBuff), pFileDirList) == NULL )
+				break;
+
+			//应该是9个参数
+			if( sscanf(szBuff,"%s%s%s%s%s%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3],szContent[4],
+				szContent[5],szContent[6],szContent[7],szContent[8]) != 9 )
+				continue;
+
+			//判断是否要进入
+			if ( 'd' != szContent[0][0] ) //目录
+			{
+				continue;	
+			}
+			if ( '2' != szContent[8][0] || '0' != szContent[8][1] )	//以20开头
+			{
+				continue;	
+			}
+			if ( 8 != strlen(szContent[8])) //8位长
+			{
+				continue;	
+			}
+
+			strcpy(szFileTimeStampPre, szContent[8]);
+			if ( 0 < strncmp(szTimePointPre, szFileTimeStampPre, 8))
+			{
+				continue;	
+			}
+	
+			/* 删除旧的下载文件列表文件 */
+			if( 0 == access(szFileListFile, F_OK) )
+			{
+				if(0 != unlink(szFileListFile))
+				{
+					err_log("point_collect: unlink %s fail\n",szDirListFile);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+			}			
+		
+			/* 建立Ftp连接 */
+			nRetVal = Ftp_Init(curCollectConf.usr,curCollectConf.password,curCollectConf.ip,
+				curCollectConf.port,FTP_TIME_OUT,1,0,g_nDebug);
+			if(nRetVal != 0)
+			{
+				err_log("point_collect: Ftp_Init fail,collect_point=%d\n%s\n%s\n%s\n%s\n",
+					curCollectConf.collect_point,curCollectConf.ip,curCollectConf.port,curCollectConf.usr,curCollectConf.password);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+			//进入目录
+			nRetVal = Ftp_Cd(szContent[8]);
+			if( 0 != nRetVal )
+			{
+				err_log("point_collect: Ftp_Cd fail,collect_point=%d,dir=%s\n",curCollectConf.collect_point,szContent[8]);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+			/* 获取最新的下载文件列表 */
+			nRetVal = Ftp_Dir(szFileListFile);
+			if( 0 != nRetVal )
+			{
+				err_log("point_collect: collect_point=%d,Ftp_Dir fail",curCollectConf.collect_point);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+            /* 关闭Ftp连接 */
+			Ftp_Close();
+
+			//打开文件
+			pFileFileList = fopen( szFileListFile , "r" );
+			if(szFileListFile == NULL)
+			{
+				err_log("point_collect: fopen %s fail\n",szFileListFile);
+				nRet = 1;		
+				goto Exit_Pro;
+			}
+
+			//循环下载
+			while (1)
+			{
+				//获取一行配置
+				memset(szBuff, 0 , sizeof(szBuff));
+				memset(szContent, 0 , sizeof(szContent));
+				if(fgets(szBuff, sizeof(szBuff), pFileFileList) == NULL )
+				{
+					break;
+				}
+
+				//应该是9个参数
+				if( sscanf(szBuff,"%s%s%s%s%s%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3],szContent[4],
+					szContent[5],szContent[6],szContent[7],szContent[8]) != 9 )
+					continue;
+
+                //如果是旧的话单文件，就不再下载
+                if(strncmp(szContent[8], "gz", 2) != 0)
+                {
+                    continue;
+                }
+
+				//判断是否要下载
+				if ( '-' != szContent[0][0] ) //文件
+				{
+					continue;	
+				}
+				if (0 != convert_date_hw(szFileTimeStamp, szContent[7], szFileTimeStampPre))//拿到文件时间戳
+				{
+					continue;
+				}
+				if ( 0 < strncmp(szTimePoint, szFileTimeStamp, 14)) //比较时间
+				{
+					continue;	
+				}
+
+				if(get_backup_name(&curCollectConf,szContent[8],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
+				{
+					err_log("point_collect: get_backup_name fail\n");
+					nRet = 1;
+					goto Exit_Pro;
+				}
+				if(0 == access(szBackupFile,F_OK))  //文件存在就不下载
+				{
+					//给时间戳到临时时间端点
+					if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
+					{
+						strcpy(szTempTimePoint, szFileTimeStamp);
+					}
+					continue;
+				}
+
+                //下载文件
+				if(get_file_port(&curCollectConf, szFileTimeStampPre, szContent[8], &lFileSize)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_port FAIL\n",nCollectPointNo,szContent[8]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //备份文件
+				if(backup_file(&curCollectConf, szContent[8], szFileTimeStamp)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,backup_file FAIL\n",nCollectPointNo,szContent[8]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //提交文件
+				if(commit_file(&curCollectConf, szContent[8], szFileTimeStamp)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,commit_file FAIL\n",nCollectPointNo,szContent[8]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //记录日志
+				if(run_log(&curCollectConf,szFileTimeStampPre,szContent[8],lFileSize,szFileTimeStamp)!=0)
+				{
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[8]);
+					nRet = 1;		
+					goto Exit_Pro;
+				}
+
+                //给时间戳到临时时间端点
+				if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
+				{
+					strcpy(szTempTimePoint, szFileTimeStamp);
+				}
+			}
+		}
+    }
 	else if(0 == strncmp("hw", curCollectConf.company, 2))
 	{
         //hw:获取目录列表,挨个进入目录获取文件列表,然后对比文件时间和时间端点,如果大
@@ -1515,9 +1959,9 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //下载文件
-				if(get_file(&curCollectConf, szFileTimeStampPre, szContent[8], &lFileSize)!=0)
+				if(get_file_passive(&curCollectConf, szFileTimeStampPre, szContent[8], &lFileSize)!=0)
 				{
-					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file FAIL\n",nCollectPointNo,szContent[8]);
+					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_passive FAIL\n",nCollectPointNo,szContent[8]);
 					nRet = 1;		
 					goto Exit_Pro;
 				}
@@ -1651,9 +2095,9 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			}
 
 			//下载文件
-			if(get_file(&curCollectConf, NULL, szContent[5], &lFileSize) != 0 )
+			if(get_file_passive(&curCollectConf, NULL, szContent[5], &lFileSize) != 0 )
 			{
-				err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file FAIL\n",nCollectPointNo,szContent[5]);
+				err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_passive FAIL\n",nCollectPointNo,szContent[5]);
 				nRet = 1;
 				goto Exit_Pro;
 			}
@@ -1822,7 +2266,7 @@ static int convert_date_nsn(char* lpOutDateTime, const char* lpInTime, const cha
 	return 0;
 }
 
-static int get_file(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size)
+static int get_file_passive(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size)
 {
 	int  ret;
 	int  ftp_ret;
@@ -1837,7 +2281,7 @@ static int get_file(collect_conf * p_collect_conf, const char * remote_path, con
 	{
 		if(0 != unlink(tmp_file_name))
 		{
-			err_log("get_file: unlink %s fail\n",tmp_file_name);
+			err_log("get_file_passive: unlink %s fail\n",tmp_file_name);
 			ret = 1;		
 			goto Exit_Pro;
 		}
@@ -1847,7 +2291,7 @@ static int get_file(collect_conf * p_collect_conf, const char * remote_path, con
 	ftp_ret=Ftp_Init(p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,p_collect_conf->port,FTP_TIME_OUT,1,1,g_nDebug);
 	if(ftp_ret!=0)
 	{
-		err_log("get_file: Ftp_Init fail,collect_point=%d\n",p_collect_conf->collect_point);
+		err_log("get_file_passive: Ftp_Init fail,collect_point=%d\n",p_collect_conf->collect_point);
 		ret=1;
 		goto Exit_Pro;
 	}
@@ -1858,7 +2302,7 @@ static int get_file(collect_conf * p_collect_conf, const char * remote_path, con
 		ftp_ret = Ftp_Cd(remote_path);
 		if(ftp_ret!=0)
 		{
-			err_log("get_file: Ftp_Cd fail,collect_point=%d,dir=%s\n",p_collect_conf->collect_point,remote_path);
+			err_log("get_file_passive: Ftp_Cd fail,collect_point=%d,dir=%s\n",p_collect_conf->collect_point,remote_path);
 			ret=1;
 			goto Exit_Pro;
 		}
@@ -1869,7 +2313,65 @@ static int get_file(collect_conf * p_collect_conf, const char * remote_path, con
 	ftp_ret = Ftp_Receive(remote_file_name, tmp_file_name, 0, &succ_bytes);
 	if(ftp_ret!=0)
 	{
-		err_log("get_file: Ftp_Receive fail,collect_point=%d,file=%s\n",p_collect_conf->collect_point,remote_file_name);
+		err_log("get_file_passive: Ftp_Receive fail,collect_point=%d,file=%s\n",p_collect_conf->collect_point,remote_file_name);
+		ret=1;
+		goto Exit_Pro;
+	}
+	
+	*file_size=succ_bytes;
+
+Exit_Pro:
+	Ftp_Close();
+	return ret;
+}
+static int get_file_port(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long * file_size)
+{
+	int  ret;
+	int  ftp_ret;
+	long succ_bytes;
+	char tmp_file_name[MAX_LONG_FILENAME];
+	
+	ret=0;
+
+    /* 如果数据在本地已经存在，先删除　*/
+	sprintf(tmp_file_name,"%s/%03d_%s",WORK,p_collect_conf->current_process_number,remote_file_name);
+	if( 0 == access(tmp_file_name, F_OK) )
+	{
+		if(0 != unlink(tmp_file_name))
+		{
+			err_log("get_file_port: unlink %s fail\n",tmp_file_name);
+			ret = 1;		
+			goto Exit_Pro;
+		}
+	}
+
+	/* 建立Ftp连接 */
+	ftp_ret=Ftp_Init(p_collect_conf->usr,p_collect_conf->password,p_collect_conf->ip,p_collect_conf->port,FTP_TIME_OUT,1,0,g_nDebug);
+	if(ftp_ret!=0)
+	{
+		err_log("get_file_port: Ftp_Init fail,collect_point=%d\n",p_collect_conf->collect_point);
+		ret=1;
+		goto Exit_Pro;
+	}
+
+	/* 如果指定了远程目录，则跳转到该目录 */
+	if(remote_path != NULL && strlen(remote_path) > 0)
+	{
+		ftp_ret = Ftp_Cd(remote_path);
+		if(ftp_ret!=0)
+		{
+			err_log("get_file_port: Ftp_Cd fail,collect_point=%d,dir=%s\n",p_collect_conf->collect_point,remote_path);
+			ret=1;
+			goto Exit_Pro;
+		}
+	}
+
+	/* Ftp_Receive() */
+	succ_bytes=0;
+	ftp_ret = Ftp_Receive(remote_file_name, tmp_file_name, 0, &succ_bytes);
+	if(ftp_ret!=0)
+	{
+		err_log("get_file_port: Ftp_Receive fail,collect_point=%d,file=%s\n",p_collect_conf->collect_point,remote_file_name);
 		ret=1;
 		goto Exit_Pro;
 	}

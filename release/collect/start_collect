@@ -1,2 +1,2 @@
 ps -ef|grep "collect "|grep -v grep|cut -c9-15|xargs kill -INT
-/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/collect -o/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/collect -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/run -p100 > /dev/null 2>/dev/null
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/collect -o/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/collect -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/run -R/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/recollector -p100 > /dev/null 2>/dev/null

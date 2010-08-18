@@ -64,6 +64,7 @@
 #define      MAX_FILE_ELEM          64
 #define      DEFAULT_IN_DIR         "./in"
 #define      DEFAULT_OUT_DIR        "./out"
+#define      DEFAULT_BACKUP_DIR     "./backup"
 #define      DEFAULT_RUN_DIR        "./"
 #define      WORK                   "./work"
 #define      LOG                    "./log"
@@ -96,6 +97,7 @@ int          curr_process_number    = 0;
 char *       progname               = NULL;
 char *       file_in_dir            = NULL;
 char *       file_out_dir           = NULL;
+char *       file_backup_dir        = NULL;
 char *       run_dir                = NULL;
 int          debug                  = 0;
 int          parallel_child_process = 1;
@@ -336,7 +338,7 @@ int main(int argc, char * argv[])
     }
 
  	/* 处理参数 */
-    while ((argval = getopt(argc, argv, "o:i:r:p:d")) != EOF) 
+    while ((argval = getopt(argc, argv, "i:o:b:r:p:d")) != EOF) 
     {
         switch(argval) {
             case 'i':
@@ -345,6 +347,9 @@ int main(int argc, char * argv[])
             case 'o':
                 file_out_dir = strdup(optarg);
                 break;	
+            case 'b':
+                file_backup_dir = strdup(optarg);
+                break;
             case 'r':
                 run_dir = strdup(optarg);
                 break;	
@@ -383,6 +388,18 @@ int main(int argc, char * argv[])
             goto Exit_Pro;
         }
         strcpy(file_out_dir, DEFAULT_OUT_DIR);
+    }
+
+    if(file_backup_dir == NULL)
+    {
+        file_backup_dir = (char *)malloc(MAX_FILENAME);
+        if(file_backup_dir == NULL)
+        {
+            err_log("main: malloc fail\n");
+            ret = 1;
+            goto Exit_Pro;
+        }
+        strcpy(file_backup_dir, DEFAULT_BACKUP_DIR);
     }
 
     if(run_dir == NULL)
@@ -456,23 +473,6 @@ int main(int argc, char * argv[])
         }
 	}
 
-	/* 检查输出文件目录 */
-	if(stat(file_out_dir, &stat_buff) == -1)
-	{
-		err_log("main: stat %s fail\n", file_out_dir);
-        ret = 1;
-        goto Exit_Pro;
-	}
-	else
-	{
-        if(!S_ISDIR(stat_buff.st_mode))	
-        {
-            err_log("main: %s isn't a dir\n", file_out_dir);
-            ret = 1;
-            goto Exit_Pro;
-        }
-	}
-
 	/* 检查输入文件目录 */
 	if(stat(file_in_dir, &stat_buff) == -1)
 	{
@@ -490,6 +490,40 @@ int main(int argc, char * argv[])
         }
 	}
 	
+	/* 检查输出文件目录 */
+	if(stat(file_out_dir, &stat_buff) == -1)
+	{
+		err_log("main: stat %s fail\n", file_out_dir);
+        ret = 1;
+        goto Exit_Pro;
+	}
+	else
+	{
+        if(!S_ISDIR(stat_buff.st_mode))	
+        {
+            err_log("main: %s isn't a dir\n", file_out_dir);
+            ret = 1;
+            goto Exit_Pro;
+        }
+	}
+	
+	/* 检查备份文件目录 */
+	if(stat(file_backup_dir, &stat_buff) == -1)
+	{
+		err_log("main: stat %s fail\n", file_backup_dir);
+        ret = 1;
+        goto Exit_Pro;
+	}
+	else
+	{
+        if(!S_ISDIR(stat_buff.st_mode))	
+        {
+            err_log("main: %s isn't a dir\n", file_backup_dir);
+            ret = 1;
+            goto Exit_Pro;
+        }
+	}
+
 	/* 校验子进程设置数目 */
 	if(parallel_child_process <= 0)
     {
@@ -502,8 +536,9 @@ int main(int argc, char * argv[])
 	
 	if(debug)
 	{
-		fprintf(stdout, "main: file_out_dir:%s#\n", file_out_dir);
 		fprintf(stdout, "main: file_in_dir:%s#\n", file_in_dir);
+		fprintf(stdout, "main: file_out_dir:%s#\n", file_out_dir);
+		fprintf(stdout, "main: file_backup_dir:%s#\n", file_backup_dir);
 		fprintf(stdout, "main: run_dir:%s#\n", run_dir);
 		fprintf(stdout, "main: parallel_child_process:%d#\n", parallel_child_process);
 	}
@@ -633,6 +668,12 @@ Exit_Pro:
     {
         free(file_out_dir);
         file_out_dir = NULL;
+    }
+
+    if(file_backup_dir != NULL)
+    {
+        free(file_backup_dir);
+        file_backup_dir = NULL;
     }
 
     if(run_dir != NULL)
