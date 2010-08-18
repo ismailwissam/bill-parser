@@ -49,19 +49,19 @@ cd $HUAWEI_A1_DIR
 make -f Makefile clean
 
 # cleaner
-CLEAN_DATA_PRETREAT_DIR=$CUR_DIR/bill_parser/cleaner/clean_data_pretreat
+CLEAN_DATA_PRETREAT_DIR=$CUR_DIR/cleaner/clean_data_pretreat
 
 cd $CLEAN_DATA_PRETREAT_DIR
 make -f Makefile clean
 
 # log parser
-LOG_PARSER_DIR=$CUR_DIR/bill_parser/log_parser
+LOG_PARSER_DIR=$CUR_DIR/log_parser
 
 cd $LOG_PARSER_DIR
 sh clean.sh
 
 # exception collect
-COLLECT_EXCEPT_DIR=$CUR_DIR/bill_parser/collect_except
+COLLECT_EXCEPT_DIR=$CUR_DIR/collect_except
 
 cd $COLLECT_EXCEPT_DIR
 sh clean.sh
