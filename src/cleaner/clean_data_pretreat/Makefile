@@ -1,6 +1,6 @@
 # Makefile for clean_data_pretreat
 
-TARGET = ../../../../release/cleaner/clean_data_pretreat
+TARGET = ../../../release/cleaner/clean_data_pretreat
 SRCS = $(wildcard ./*.c)
 OBJECTS = $(SRCS:%.c=%.o)
 
