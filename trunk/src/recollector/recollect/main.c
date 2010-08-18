@@ -36,7 +36,7 @@ static void usage(int status)
     
     fprintf(output, "Usage: %s [-c collect_path] [-p pretreat_path] [-r run_path] \
                                [-x collect_process_num] [-y pretreat_process_num] [-z insert_process_num] \
-                               [-s db_server] [-u db_user] [-w db_password] [-d]\n", progname);
+                               [-s db_server] [-u db_user] [-w db_password] [-f] [-d]\n", progname);
     fprintf(output, "\nOptions:\n");
     fprintf(output, "        -c collect path, default is ./data/collect\n");
     fprintf(output, "        -p pretreat path, default is ./data/pretreat\n");
@@ -47,6 +47,7 @@ static void usage(int status)
     fprintf(output, "        -s db server.\n");
     fprintf(output, "        -u db user.\n");
     fprintf(output, "        -w db password.\n");
+    fprintf(output, "        -f force downlad flag\n");
     fprintf(output, "        -d debug flag\n");
 
 	exit(status);
@@ -73,7 +74,7 @@ int main(int argc, char * argv[])
     }
 
  	/* 处理参数 */
-    while ((argval = getopt(argc, argv, "c:p:r:x:y:z:s:u:w:d")) != EOF) 
+    while ((argval = getopt(argc, argv, "c:p:r:x:y:z:s:u:w:fd")) != EOF) 
     {
         switch(argval) {
             case 'c':
@@ -102,6 +103,9 @@ int main(int argc, char * argv[])
                 break;
             case 'w':
                 db_password = strdup(optarg);
+                break;
+            case 'f':
+                force_update = 1;
                 break;
             case 'd':
                 debug = 1;

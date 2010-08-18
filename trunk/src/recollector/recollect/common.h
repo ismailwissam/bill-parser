@@ -53,6 +53,7 @@ extern char* db_server;
 extern int collect_parallel_num;
 extern int pretreat_parallel_num;
 extern int insert_parallel_num;
+extern int force_update;
 extern int debug;
 extern int collect_point_num;
 
