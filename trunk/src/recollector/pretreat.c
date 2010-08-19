@@ -35,6 +35,9 @@
 /* modify by wangxiaohui at 2010.7.19                                       */
 /*        补采程序版本。                                                    */
 /*        重构代码结构。                                                    */
+/*                                                                          */
+/* modify by wangxiaohui at 2010.8                                          */
+/*        增加csv备份功能，如果备份目录csv文件已经存在，则覆盖旧的文件。    */
 /****************************************************************************/
 #include <unistd.h>
 #include <string.h>
@@ -80,7 +83,8 @@ static void         process_pretreat(void);
 static int          load_module(void);
 static int          get_relative_module_no(const char * in_file_name, int * module_no);
 static int          valid_in_file_name(const char * in_file_name);
-static int          valid_out_file_name_and_get_folder_name(const char * out_file_name, char * ret_folder_name);
+static int          get_commit_filename(const char * out_file_name, char * ret_commit_filename);
+static int          get_backup_filename(const char * out_file_name, char * ret_backup_filename);
 static int          get_ne_name(const char * original_file_name, char * ret_ne_name);
 static void         sigusr1_handler(int signum);
 
@@ -243,8 +247,8 @@ static int commit_file(const char * in_file_name, const char * out_file_name, co
 	FILE  * fp = NULL;
 	char  run_log_time[MAX_TIME];
 	char  tmp_file_name[MAX_FILENAME];
-	char  tmp_file_name_2[MAX_FILENAME];
-	char  tmp_file_name_3[MAX_FILENAME];
+	char  commit_file_name[MAX_FILENAME];
+	char  backup_file_name[MAX_FILENAME];
     char  work_dir[MAX_FILENAME];
     char  out_files[MAX_OUTFILE_NUM][MAX_FILENAME];
     const char  *ptr_front = NULL, *ptr_back = NULL;
@@ -254,7 +258,8 @@ static int commit_file(const char * in_file_name, const char * out_file_name, co
     /* 初始化 */
     memset(work_dir, 0, sizeof(work_dir));
     memset(tmp_file_name, 0, sizeof(tmp_file_name));
-    memset(tmp_file_name_2, 0, sizeof(tmp_file_name_2));
+    memset(commit_file_name, 0, sizeof(commit_file_name));
+    memset(backup_file_name, 0, sizeof(backup_file_name));
     memset(out_files, 0, sizeof(out_files));
 
     /* 获取工作目录 */
@@ -285,29 +290,43 @@ static int commit_file(const char * in_file_name, const char * out_file_name, co
     /* 循环处理每一个输出的CSV文件 */
     for(i = 0; i < count; ++i)
     {
+        /* csv文件临时工作目录 */
+        sprintf(tmp_file_name, "%s/%s", work_dir, out_files[i]);
+
 		// 获取提交目录
-		if (0 != valid_out_file_name_and_get_folder_name(out_files[i],tmp_file_name_3))
+		if (0 != get_commit_filename(out_files[i], commit_file_name))
 		{
-			err_log("commit_file: valid_out_file_name_and_get_folder_name: %s to %s\n", out_files[i],tmp_file_name_3);
+			err_log("commit_file: get_commit_filename fail\n");
 			ret = 1;
 			goto Exit_Pro;
 		}
-        /* 复制工作目录文件至提交目录 */
-        sprintf(tmp_file_name, "%s/%s", work_dir, out_files[i]);
-        sprintf(tmp_file_name_2, "%s/%s", tmp_file_name_3, out_files[i]);
 
-        if(access(tmp_file_name_2, F_OK) == -1)
+        /* 复制工作目录文件至提交目录 */
+        if(link(tmp_file_name, commit_file_name) != 0)
         {
-            if(link(tmp_file_name, tmp_file_name_2) != 0)
+            err_log("commit_file: link %s to %s fail\n", tmp_file_name, commit_file_name);
+            ret = 1;
+            goto Exit_Pro;
+        }
+        
+        /* 如果设置了备份目录，则对csv文件进行备份 */
+        if(csv_backup_dir != NULL)
+        {
+            /* 获取备份目录 */
+            if (0 != get_backup_filename(out_files[i], backup_file_name))
             {
-                err_log("commit_file: link %s to %s fail\n", tmp_file_name, tmp_file_name_2);
+                err_log("commit_file: get_backup_filename fail\n");
                 ret = 1;
                 goto Exit_Pro;
             }
-        }
-        else
-        {
-            err_log("commit_file: target file %s exist\n", tmp_file_name_2);
+
+            /* 复制工作目录文件至备份目录 */
+            if(link(tmp_file_name, backup_file_name) != 0)
+            {
+                err_log("commit_file: link %s to %s fail\n", tmp_file_name, backup_file_name);
+                ret = 1;
+                goto Exit_Pro;
+            }
         }
 
         /* 删除工作目录下相应的临时文件 */
@@ -849,12 +868,12 @@ static int valid_in_file_name(const char * in_file_name)
     return 0;
 }
 
-static int valid_out_file_name_and_get_folder_name(const char * out_file_name, char * ret_folder_name)
+static int get_commit_filename(const char * out_file_name, char * ret_commit_filename)
 { 
     char            elems[MAX_FILE_ELEM_NUM][MAX_FILE_ELEM];
     const char      *ptr_front = NULL, *ptr_back = NULL;
     char            table_date[MAX_DATE];
-	char			szFolder[MAX_FILENAME];
+	char			path_name[MAX_FILENAME];
     int             count, len, i;
 
     /* 初始化缓存数组 */
@@ -889,7 +908,7 @@ static int valid_out_file_name_and_get_folder_name(const char * out_file_name, c
     /* CSV文件以'_'间隔的元素最少有6个 */
     if(count < 6)
     {
-		err_log("valid_out_file_name_and_get_folder_name: file name format incorrect: %s\n", out_file_name);
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     }
  
@@ -908,7 +927,7 @@ static int valid_out_file_name_and_get_folder_name(const char * out_file_name, c
        || strlen(elems[4]) == 0
        || strlen(elems[5]) == 0)
     {
-		err_log("valid_out_file_name_and_get_folder_name: file name format incorrect: %s\n", out_file_name);
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     } 
 
@@ -917,7 +936,7 @@ static int valid_out_file_name_and_get_folder_name(const char * out_file_name, c
     /* 第二个元素elems[1]是厂家缩写，目前只可能是hw和nsn */
     if((strcmp(elems[1], "hw") != 0) && (strcmp(elems[1], "nsn") != 0))
     {
-		err_log("valid_out_file_name_and_get_folder_name: file name format incorrect: %s\n", out_file_name);
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     }
     
@@ -935,7 +954,7 @@ static int valid_out_file_name_and_get_folder_name(const char * out_file_name, c
     len = strlen(elems[4]);
     if(len != 14)
     {
-		err_log("valid_out_file_name_and_get_folder_name: file name format incorrect: %s\n", out_file_name);
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     }
 
@@ -943,7 +962,7 @@ static int valid_out_file_name_and_get_folder_name(const char * out_file_name, c
     {
         if(!isdigit(elems[4][i]))
         {
-            err_log("valid_out_file_name_and_get_folder_name: file name format incorrect: %s\n", out_file_name);
+            err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
             return 1;
         }
     }
@@ -961,38 +980,168 @@ static int valid_out_file_name_and_get_folder_name(const char * out_file_name, c
         if(strcmp(elems[3], "bi") == 0)
         {
             /* 表名： op_bill_厂家_端局_时间(MMDD) */
-            sprintf(szFolder, "op_bill_%s_%s_%s", elems[1], elems[2], table_date);
+            sprintf(path_name, "%s/op_bill_%s_%s_%s", pretreat_dir, elems[1], elems[2], table_date);
         }
         else
         {
             /* 表名： op_bill_厂家_话单类型_端局_时间(MMDD) */
-            sprintf(szFolder, "op_bill_%s_%s_%s_%s", elems[1], elems[3], elems[2], table_date);
+            sprintf(path_name, "%s/op_bill_%s_%s_%s_%s", pretreat_dir, elems[1], elems[3], elems[2], table_date);
         }
     }
     else if(strcmp(elems[1], "nsn") == 0)
     {
         /* 表名： op_bill_厂家_话单类型_端局_时间(MMDD) */
-        sprintf(szFolder, "op_bill_%s_%s_%s_%s", elems[1], elems[3], elems[2], table_date);
+        sprintf(path_name, "%s/op_bill_%s_%s_%s_%s", pretreat_dir, elems[1], elems[3], elems[2], table_date);
     }
     else
     {
-        err_log("valid_out_file_name_and_get_folder_name: file name format incorrect: %s\n", out_file_name);
+        err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     }
 
 	//确认目录是否存在,不存在则创建
-	sprintf(ret_folder_name,"%s/%s",pretreat_dir, szFolder);
 	P();
-	if(access(ret_folder_name,F_OK) == -1)
+	if(access(path_name,F_OK) == -1)
 	{
-		if(mkdir(ret_folder_name,0755)!=0)
+		if(mkdir(path_name,0755)!=0)
 		{
-			err_log("valid_out_file_name_and_get_folder_name: mkdir incorrect: %s\n", ret_folder_name);
+			err_log("get_commit_filename: mkdir incorrect: %s\n", path_name);
 			V();
 			return 1;
 		}
 	}
 	V();
+
+    /* 返回提交文件名称 */
+    sprintf(ret_commit_filename, "%s/%s", path_name, out_file_name);
+
+    return 0;
+}
+
+static int get_backup_filename(const char * out_file_name, char * ret_backup_filename)
+{ 
+    char            elems[MAX_FILE_ELEM_NUM][MAX_FILE_ELEM];
+    const char      *ptr_front = NULL, *ptr_back = NULL;
+    char            table_date[MAX_DATE];
+	char			path_name[MAX_FILENAME];
+    int             count, len, i;
+
+    /* 初始化缓存数组 */
+    for(i = 0; i < MAX_FILE_ELEM_NUM; ++i)
+    {
+        memset(elems[i], 0, sizeof(elems[i]));
+    }
+
+    /* 分解输入文件的标题元素 */
+    ptr_front = strrchr(out_file_name, '/');
+    if(ptr_front == NULL)
+    {
+        ptr_front = out_file_name;
+    }
+    else 
+    {
+        ptr_front++;
+    }
+
+    count = 0;
+    while((ptr_back = strchr(ptr_front, '_')) != NULL)
+    {
+        strncpy(elems[count++], ptr_front, ptr_back - ptr_front);
+        ptr_front = ++ptr_back;
+    }
+    
+    if(strlen(ptr_front) > 0)
+    {
+        strcpy(elems[count++], ptr_front);
+    }
+ 
+    /* CSV文件以'_'间隔的元素最少有6个 */
+    if(count < 6)
+    {
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+        return 1;
+    }
+ 
+    /* 
+     * 验证分解出来的前五个元素 
+     * elems[0]: 采集点编号 
+     * elems[1]: 厂商编号(hw,nsn)
+     * elems[2]: 网元名称
+     * elems[3]: 话单类型
+     * elems[4]: 话单生成时间(YYYYMMDDhhmmss)
+     * */
+    if(strlen(elems[0]) == 0 
+       || strlen(elems[1]) == 0
+       || strlen(elems[2]) == 0 
+       || strlen(elems[3]) == 0
+       || strlen(elems[4]) == 0
+       || strlen(elems[5]) == 0)
+    {
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+        return 1;
+    } 
+
+    /* 第一个元素elems[0]是采集点编号：6位数字编号     */
+
+    /* 第二个元素elems[1]是厂家缩写，目前只可能是hw和nsn */
+    if((strcmp(elems[1], "hw") != 0) && (strcmp(elems[1], "nsn") != 0))
+    {
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+        return 1;
+    }
+    
+    /* 
+     * 第三个元素elems[2]是网元名称，所有的网元名称也是确定的，但为了
+     * 执行效率，目前暂不验证网元名称 
+     */
+
+    /* 
+     * 第四个元素elems[3]是话单类型，要解析的话单类型也是确定的，但为了
+     * 执行效率，目前暂不验证话单类型 
+     */
+
+    /* 第五个元素elems[4]是日期格式：YYYYMMDDhhsssmm */
+    len = strlen(elems[4]);
+    if(len != 14)
+    {
+		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+        return 1;
+    }
+
+    for(i = 0; i < len; ++i)
+    {
+        if(!isdigit(elems[4][i]))
+        {
+            err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+            return 1;
+        }
+    }
+
+    /* 把需要的时间提取出来 
+     * 现在elems[4]中存放的时间格式是：YYYYMMDDhhmmss
+     * 把其中的MMDD提取出来作为表名的一部分
+     */
+    memset(table_date, 0, sizeof(table_date));
+    strncpy(table_date, &(elems[4][4]), 4);
+
+    /* 生成需要的文件夹名称 */
+    sprintf(path_name, "%s/%s/%s/%s", csv_backup_dir, elems[1], elems[3], table_date);
+
+	/* 确认目录是否存在,不存在则创建 */
+	P();
+	if(access(path_name,F_OK) == -1)
+	{
+		if(mkdir(path_name,0755)!=0)
+		{
+			err_log("get_commit_filename: mkdir incorrect: %s\n", path_name);
+			V();
+			return 1;
+		}
+	}
+	V();
+
+    /* 返回备份文件名称 */
+    sprintf(ret_backup_filename, "%s/%s", path_name, out_file_name);
 
     return 0;
 }

@@ -41,10 +41,11 @@ static void usage(int status)
     
     fprintf(output, "Usage: %s [-c collect_path] [-p pretreat_path] [-r run_path] \
                                [-x collect_process_num] [-y pretreat_process_num] \
-                               [-f] [-d]\n", progname);
+                               [-b csv_backup_path] [-f] [-d]\n", progname);
     fprintf(output, "\nOptions:\n");
     fprintf(output, "        -c collect path, default is ./data/collect\n");
     fprintf(output, "        -p pretreat path, default is ./data/pretreat\n");
+    fprintf(output, "        -b csv backup path, no backup if not set\n");
     fprintf(output, "        -r run path, default is ./\n");
     fprintf(output, "        -x collect child process number.\n");
     fprintf(output, "        -y pretreat child process number.\n");
@@ -75,7 +76,7 @@ int main(int argc, char * argv[])
     }
 
  	/* 处理参数 */
-    while ((argval = getopt(argc, argv, "c:p:r:x:y:fd")) != EOF) 
+    while ((argval = getopt(argc, argv, "c:p:b:r:x:y:fd")) != EOF) 
     {
         switch(argval) {
             case 'c':
@@ -84,6 +85,9 @@ int main(int argc, char * argv[])
             case 'p':
                 pretreat_dir = strdup(optarg);
                 break;	
+            case 'b':
+                csv_backup_dir = strdup(optarg);
+                break;
             case 'r':
                 run_dir = strdup(optarg);
                 break;	
@@ -252,6 +256,26 @@ int main(int argc, char * argv[])
         }
 	}
 
+	/* 检查备份目录 */
+    if(csv_backup_dir != NULL)
+    {
+        if(stat(csv_backup_dir, &stat_buff) == -1)
+        {
+            err_log("main: stat %s fail\n", csv_backup_dir);
+            ret = 1;
+            goto Exit_Pro;
+        }
+        else
+        {
+            if(!S_ISDIR(stat_buff.st_mode))	
+            {
+                err_log("main: %s isn't a dir\n", csv_backup_dir);
+                ret = 1;
+                goto Exit_Pro;
+            }
+        }
+    }
+
 	/* 清理work目录下文件 */
     if(clear_dir_file(WORK_DIR, NULL, NULL) != 0)
     {
@@ -380,6 +404,10 @@ Exit_Pro:
     if(pretreat_dir != NULL)
     {
         free(pretreat_dir);
+    }
+    if(csv_backup_dir != NULL)
+    {
+        free(csv_backup_dir);
     }
     if(run_dir != NULL)
     {

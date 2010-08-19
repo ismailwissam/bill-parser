@@ -3,7 +3,7 @@
 /*                                                                         */ 
 /* 话单解析数据预处理目录清理程序v1.0                                      */
 /*                                                                         */
-/* created by wangxiaohui at 2010.6.21                                     */
+/* created by wangxiaohui at 2010.6                                        */
 /***************************************************************************/
 #include <unistd.h>
 #include <string.h>
