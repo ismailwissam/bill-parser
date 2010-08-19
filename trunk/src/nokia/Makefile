@@ -1,6 +1,6 @@
 # Makefile for nokia
 
-TARGET = ../../../release/pretreat/module/nokia.so
+TARGET = ../../release/parse_module/nokia.so
 SRCS = $(wildcard ./*.c)
 OBJECTS = $(SRCS:%.c=%.o)
 
