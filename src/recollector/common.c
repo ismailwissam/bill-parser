@@ -13,12 +13,8 @@
 char* collect_dir = NULL;
 char* pretreat_dir = NULL;
 char* run_dir = NULL;
-char* db_user = NULL;
-char* db_password = NULL;
-char* db_server = NULL;
 int collect_parallel_num = 1;
 int pretreat_parallel_num = 1;
-int insert_parallel_num = 1;
 int force_update = 0;
 int debug = 0;
 int collect_point_num = 0;
@@ -193,3 +189,4 @@ int clear_dir_file(const char * dir_name, const char * prefix, const char * suff
 
     return 0;
 }
+
