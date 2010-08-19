@@ -5,22 +5,25 @@
 CUR_DIR=`pwd`
 
 # normal collect
-COLLECT_DIR=$CUR_DIR/bill_parser/collect
-INSERT_DIR=$CUR_DIR/bill_parser/gsm_i
-PRETREAT_DIR=$CUR_DIR/bill_parser/pretreat
-HUAWEI_DIR=$CUR_DIR/bill_parser/huawei
-NOKIA_DIR=$CUR_DIR/bill_parser/nokia
-HUAWEI_A1_DIR=$CUR_DIR/bill_parser/huawei_a1
+COLLECT_DIR=$CUR_DIR/collect
+PRETREAT_DIR=$CUR_DIR/pretreat
+INSERT_DIR=$CUR_DIR/insert
 
 cd $COLLECT_DIR
-make -f Makefile
-
-cd $INSERT_DIR
 make -f Makefile
 
 cd $PRETREAT_DIR
 make -f Makefile
 
+cd $INSERT_DIR
+make -f Makefile
+
+
+# parse module
+HUAWEI_DIR=$CUR_DIR/huawei
+NOKIA_DIR=$CUR_DIR/nokia
+HUAWEI_A1_DIR=$CUR_DIR/huawei_a1
+
 cd $HUAWEI_DIR
 make -f Makefile
 
@@ -30,25 +33,14 @@ make -f Makefile
 cd $HUAWEI_A1_DIR
 cmake .
 make -f Makefile
+
 
 # re-collect
-RECOLLECT_DIR=$CUR_DIR/recollector/recollect
-HUAWEI_DIR=$CUR_DIR/recollector/huawei
-NOKIA_DIR=$CUR_DIR/recollector/nokia
-HUAWEI_A1_DIR=$CUR_DIR/recollector/huawei_a1
+RECOLLECTOR_DIR=$CUR_DIR/recollector
 
-cd $RECOLLECT_DIR
+cd $RECOLLECTOR_DIR
 make -f Makefile
 
-cd $HUAWEI_DIR
-make -f Makefile
-
-cd $NOKIA_DIR
-make -f Makefile
-
-cd $HUAWEI_A1_DIR
-cmake .
-make -f Makefile
 
 # cleaner
 CLEAN_DATA_PRETREAT_DIR=$CUR_DIR/cleaner/clean_data_pretreat
@@ -56,17 +48,20 @@ CLEAN_DATA_PRETREAT_DIR=$CUR_DIR/cleaner/clean_data_pretreat
 cd $CLEAN_DATA_PRETREAT_DIR
 make -f Makefile
 
+
 # log parser
 LOG_PARSER_DIR=$CUR_DIR/log_parser
 
 cd $LOG_PARSER_DIR
 sh release.sh
 
+
 # exception collect
 COLLECT_EXCEPT_DIR=$CUR_DIR/collect_except
 
 cd $COLLECT_EXCEPT_DIR
 sh release.sh
+
 
 # controller
 CONTROLLER_DIR=$CUR_DIR/controller

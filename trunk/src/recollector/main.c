@@ -4,6 +4,12 @@
 /* 话单补采程序                                                             */
 /*                                                                          */
 /* create by wangxiaohui at 2010.7.19                                       */
+/*                                                                          */
+/* modify by wangxiaohui at 2010.8.19                                       */
+/*        之前版本补采程序的入库操作和正常采集的入库操作产生冲突，造成调用  */
+/*        sqlldr失败，所以现在修改为补采程序共享正常采集的入库操作，前面的  */
+/*        采集过程和解析过程完全独立，在解析阶段把生成的csv文件放到正常入库 */
+/*        目录下，让正常采集的入库程序完成补采数据的入库操作                */
 /****************************************************************************/
 #include <unistd.h>
 #include <string.h>
@@ -19,7 +25,6 @@
 #include "semctl.h"
 #include "collect.h"
 #include "pretreat.h"
-#include "insert.h"
 
 /* global variant definition */
 char*               progname = NULL;
@@ -35,18 +40,14 @@ static void usage(int status)
     FILE *output = status?stderr:stdout;
     
     fprintf(output, "Usage: %s [-c collect_path] [-p pretreat_path] [-r run_path] \
-                               [-x collect_process_num] [-y pretreat_process_num] [-z insert_process_num] \
-                               [-s db_server] [-u db_user] [-w db_password] [-f] [-d]\n", progname);
+                               [-x collect_process_num] [-y pretreat_process_num] \
+                               [-f] [-d]\n", progname);
     fprintf(output, "\nOptions:\n");
     fprintf(output, "        -c collect path, default is ./data/collect\n");
     fprintf(output, "        -p pretreat path, default is ./data/pretreat\n");
     fprintf(output, "        -r run path, default is ./\n");
     fprintf(output, "        -x collect child process number.\n");
     fprintf(output, "        -y pretreat child process number.\n");
-    fprintf(output, "        -z insert child process number.\n");
-    fprintf(output, "        -s db server.\n");
-    fprintf(output, "        -u db user.\n");
-    fprintf(output, "        -w db password.\n");
     fprintf(output, "        -f force downlad flag\n");
     fprintf(output, "        -d debug flag\n");
 
@@ -58,8 +59,8 @@ int main(int argc, char * argv[])
     int        ret = 0;
 	int        argval;
 	struct     stat stat_buff;
-    pid_t      collect_pid, pretreat_pid, insert_pid, wait_pid;
-    BOOL       collect_task_finish, pretreat_task_finish, insert_task_finish;
+    pid_t      collect_pid, pretreat_pid, wait_pid;
+    BOOL       collect_task_finish, pretreat_task_finish;
 
     printf("begin the main process...\n");
 
@@ -74,7 +75,7 @@ int main(int argc, char * argv[])
     }
 
  	/* 处理参数 */
-    while ((argval = getopt(argc, argv, "c:p:r:x:y:z:s:u:w:fd")) != EOF) 
+    while ((argval = getopt(argc, argv, "c:p:r:x:y:fd")) != EOF) 
     {
         switch(argval) {
             case 'c':
@@ -91,18 +92,6 @@ int main(int argc, char * argv[])
                 break;
             case 'y':
                 pretreat_parallel_num = atoi(optarg);
-                break;
-            case 'z':
-                insert_parallel_num = atoi(optarg);
-                break;
-            case 's':
-                db_server = strdup(optarg);
-                break;
-            case 'u':
-                db_user = strdup(optarg);
-                break;
-            case 'w':
-                db_password = strdup(optarg);
                 break;
             case 'f':
                 force_update = 1;
@@ -152,43 +141,7 @@ int main(int argc, char * argv[])
         }
         strcpy(run_dir, DEFAULT_RUN_DIR);
     }
-    
-    if(db_server == NULL)
-    {
-        db_server = (char *)malloc(MAX_TABLENAME);
-        if(db_server == NULL)
-        {
-            err_log("main: malloc fail\n");
-            ret = 1;
-            goto Exit_Pro;
-        }
-        strcpy(db_server, DEFAULT_DB_SERVER);
-    }
-    
-    if(db_user == NULL)
-    {
-        db_user = (char *)malloc(MAX_TABLENAME);
-        if(db_user == NULL)
-        {
-            err_log("main: malloc fail\n");
-            ret = 1;
-            goto Exit_Pro;
-        }
-        strcpy(db_user, DEFAULT_DB_USER);
-    }
-    
-    if(db_password == NULL)
-    {
-        db_password = (char *)malloc(MAX_TABLENAME);
-        if(db_password == NULL)
-        {
-            err_log("main: malloc fail\n");
-            ret = 1;
-            goto Exit_Pro;
-        }
-        strcpy(db_password, DEFAULT_DB_PASSWORD);
-    }
-
+   
 	/* 切换到运行目录 */
 	if(chdir(run_dir) == -1)
 	{
@@ -243,23 +196,6 @@ int main(int argc, char * argv[])
         if(!S_ISDIR(stat_buff.st_mode))	
         {
             err_log("main: %s isn't a dir\n", CONF_DIR);
-            ret = 1;
-            goto Exit_Pro;
-        }
-	}
-
-	/* 检查模板目录 */
-	if(stat(TEMPLATE_DIR, &stat_buff) == -1)
-	{
-		err_log("main: stat %s fail\n", TEMPLATE_DIR);
-        ret = 1;
-        goto Exit_Pro;
-	}
-	else
-	{
-        if(!S_ISDIR(stat_buff.st_mode))	
-        {
-            err_log("main: %s isn't a dir\n", TEMPLATE_DIR);
             ret = 1;
             goto Exit_Pro;
         }
@@ -367,20 +303,9 @@ int main(int argc, char * argv[])
         goto Exit_Pro;
     }
 
-    printf("begin the insert task process...\n");
-
-    /* 启动入库任务 */
-    if((insert_pid = start_insert_task()) < 0)
-    {
-        err_log("main: start insert task fail\n");
-        ret = 1;
-        goto Exit_Pro;
-    }
-
     /* 等待三个任务进程退出 */
     collect_task_finish = FALSE;
     pretreat_task_finish = FALSE;
-    insert_task_finish = FALSE;
     while(1)
     {
         /* 等待采集任务退出 */
@@ -418,12 +343,6 @@ int main(int argc, char * argv[])
                 pretreat_task_finish = TRUE;
 
                 printf("finish the pretreat task process successfully!\n");
-
-                /* 如果解析任务完成，则向入库任务进程发送一个通知信号 */
-                if(insert_pid > 0)
-                {
-                    kill(insert_pid, SIGUSR1);
-                }
             }
             if(wait_pid < 0)
             {
@@ -433,27 +352,8 @@ int main(int argc, char * argv[])
             }
         }
 
-        /* 等待入库任务进程退出 */
-        if(insert_pid > 0)
-        {
-            wait_pid = waitpid(insert_pid, NULL, WNOHANG);
-            if(wait_pid > 0)
-            {
-                insert_pid = 0;
-                insert_task_finish = TRUE;
-
-                printf("finish the insert task process successfully!\n");
-            }
-            if(wait_pid < 0)
-            {
-                err_log("main: waitpid fail\n");
-                ret = 1;
-                goto Exit_Pro;
-            }
-        }
-
-        /* 如果三个任务进程都已经完成，则退出主进程 */
-        if(collect_task_finish && pretreat_task_finish && insert_task_finish)
+        /* 如果采集和解析进程都已经完成，则退出主进程 */
+        if(collect_task_finish && pretreat_task_finish)
         {
             break;
         }
@@ -484,18 +384,6 @@ Exit_Pro:
     if(run_dir != NULL)
     {
         free(run_dir);
-    }
-    if(db_server != NULL)
-    {
-        free(db_server);
-    }
-    if(db_user != NULL)
-    {
-        free(db_user);
-    }
-    if(db_password != NULL)
-    {
-        free(db_password);
     }
 	return ret;
 }
