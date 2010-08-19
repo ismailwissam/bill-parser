@@ -12,6 +12,7 @@
 
 char* collect_dir = NULL;
 char* pretreat_dir = NULL;
+char* csv_backup_dir = NULL;
 char* run_dir = NULL;
 int collect_parallel_num = 1;
 int pretreat_parallel_num = 1;

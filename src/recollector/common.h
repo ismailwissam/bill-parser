@@ -42,6 +42,7 @@ typedef unsigned int BOOL;
 /* global variant definition */
 extern char* collect_dir;
 extern char* pretreat_dir;
+extern char* csv_backup_dir;
 extern char* run_dir;
 extern int collect_parallel_num;
 extern int pretreat_parallel_num;
