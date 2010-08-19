@@ -1,6 +1,6 @@
 # Makefile for recollect
 
-TARGET = ../../../release/recollector/recollector
+TARGET = ../../release/recollector/recollector
 SRCS = $(wildcard ./*.c) 
 OBJECTS = $(SRCS:%.c=%.o)
 

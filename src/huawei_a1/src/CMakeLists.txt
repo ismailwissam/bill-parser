@@ -4,7 +4,7 @@
 # 设置头文件路径和库文件路径
 #
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
-LINK_DIRECTORIES("${PROJECT_SOURCE_DIR}/../../../release/pretreat/module")
+LINK_DIRECTORIES("${PROJECT_SOURCE_DIR}/../../release/parse_module")
 
 #
 # 设置 c++源文件
