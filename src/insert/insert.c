@@ -109,11 +109,12 @@ static void usage(int status)
 {
     FILE *output = status?stderr:stdout;
     
-    fprintf(output,"Usage: %s [-i file from path] [-r run path] [-p parallel child number] [-t interval_time] [-u db_user] [-w db_password] [-s db_server] [-d]\n",progname);
+    fprintf(output,"Usage: %s [-i csv_input_path] [-r run_path] [-p parallel_child_number] \
+                              [-t interval_time] [-u db_user] [-w db_password] [-s db_server] [-d]\n",progname);
     fprintf(output,"\nOptions:\n");
-    fprintf(output,"        -i changes the file from directory to that specified in path, default is ./in\n");
-    fprintf(output,"        -r changes the run directory to that specified in path, default is ./\n");
-    fprintf(output,"        -p changes the parallel child number, default is 1\n");
+    fprintf(output,"        -i csv input path, default is ./in\n");
+    fprintf(output,"        -r insert program run path, default is ./\n");
+    fprintf(output,"        -p the parallel child number, default is 1\n");
     fprintf(output,"        -t child process interval time");
     fprintf(output,"        -u specify db_user\n");
     fprintf(output,"        -w specify db_password\n");

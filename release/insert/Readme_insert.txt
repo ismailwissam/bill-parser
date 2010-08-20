@@ -1,16 +1,13 @@
-1.目录结构
+insert: 话单入库程序，把话单解析程序生成的csv文件入库。
+
+1.目录结构说明
   ./           程序目录
   ./work       存放入库过程中的临时文件
   ./log        程序日志目录
   ./conf       程序配置目录
   ./template   ctl文件模板目录
-  
-2.文件命名
-  a.控制文件：csv原文件名.ctl
-  b.日志文件分为，运行日志(insert_run.YYYYMMDD) 和 错误日志(insert_err.log.xxx)xxx为子进程编号
-  c.程序名为：insert
 
-3.程序参数
+2.程序参数说明
   insert [-r run path] [-p parallel child number] [-u db_user] [-w db_password] [-s db_server] [-d]
   	       -r changes the run directory to that specified in path, default is ./
   	       -p changes the parallel child number, default is 1
