@@ -1,36 +1,31 @@
-1.目录结构
-  ./           程序目录
+collect: 话单采集程序，从配置的Ftp服务器上下载话单文件到本地。
+
+1.目录结构说明
+  ./           程序运行目录
   ./work       文件临时目录 程序运行时存放未完成的文件
   ./log        程序日志目录
   ./conf       程序配置目录 
-               文件提交目录 有命令行参数指定,不能以/结尾
 
-
-2.文件命名规则
-  a.提交文件名, 单目录为：采集点编号_原文件名,  多目录为：采集点编号_目录名_原文件名
-  b.日志文件分为，运行日志(collect_run.xxxxxx.YYYYMMDD) 和 错误日志(collect_err.log, collect_err.log.xxx)
-    xxxxxx为采集点编号,  xxx为子进程编号
-  c.程序名为：collect
-  d.程序配置参数文件为：collect.conf
-  
-3.程序参数
-  collect  [-o file commit path] [-r run path] [-p parallel child number] [-d]
-  	       -o changes the file commit directory to that specified in path, default is ./data
-  	       -r changes the run directory to that specified in path, default is ./
-  	       -p changes the parallel child number, default is 1
-  	       -d debug specified
-
-4.临时文件名
-----------------------------------------------------------------------------------------------------------------------
-在采集过程中
-     ftp get的远端文件临时名为：子进程编号(3位数字)_远端文件名
-     ftp dir的远端列表临时名为：子进程编号(3位数字)_dir_tmp
-  
-5.格式
-----------------------------------------------------------------------------------------------------------------------
-collect.conf 格式
-说明：
+2.程序调用参数
+  collect  [-o bill_commit_path] [-r run_path] [-R recollect_run_path] 
+		   [-p parallel_child_number] [-m adjust_minute] [-d]
+  	       -o bill commit path, default is ./data/collect
+  	       -r collect program run path, default is ./
+		   -R recollect program run path, must not set
+  	       -p the parallel child number, default is 1
+		   -m adjust minuate, default is 0
+  	       -d enable debug mode
+		   
+3.配置文件说明
+（1）./conf/collect.conf 采集配置
+配置格式：
 采集点编号 厂商 设备 ip usr password  采集点目录名 采集点文件名匹配格式 本地备份目录名 是否提交 是否间隔一个文件 
+
+配置示例：
+<000001> 130.10.10.218 mscbill mscbill /CDB/buffer/dbill * /backup4 yes yes
+#<000002> 130.10.10.110 mscbill mscbill  ../buffer/* * /msc5 yes yes
+
+注意事项：
 #开头的行不处理(第一个字符是#)
 行号必须和采集点编号一致
 本地备份目录名,不能以/结尾,not(不区分大小写)时不备份.
@@ -51,32 +46,15 @@ aa*   aa开头的文件
 *bb   bb结尾的文件
 cc*dd cc开头并且dd结尾的文件
 
-示例：
-<000001> 130.10.10.218 mscbill mscbill /CDB/buffer/dbill * /backup4 yes yes
-#<000002> 130.10.10.110 mscbill mscbill  ../buffer/* * /msc5 yes yes
+4.日志文件说明
+（1）运行日志
+	文件：collect_run.%网元名称%.%日期%
+	内容：采集点编号 网元名称 采集目录 采集文件 文件大小 生成时间 采集时间 是否备份 是否提交
+	示例： <000001>  hzgs2 20100629 gzX3KM0740000003972_tdhzgs20834.dat 1276131  20100629104800 20100629114744 1  1
 
-
-----------------------------------------------------------------------------------------------------------------------
-xxxxxx_run.conf 格式
-
-说明：
-采集点编号 已采集文件目录(最后一项) 已采集文件(下次采集不包括该文件)
-
-collect.conf中每行对应一个xxxxxx_run.conf文件
-
-
-示例(000001_run.conf)：
-<000001> dbill BJMSC4.2005.05.07.1100.44
-
-----------------------------------------------------------------------------------------------------------------------
-collect_run.xxxxxx.YYYYMMDD 格式
-
-说明：
-采集点编号 目录名 文件名 开始时间 结束时间 文件大小 是否备份 是否提交
-示例：
-<000001> /CDB/buffer/dbill BJMSC4.2005.05.07.1100.44 20050526120911 200505260915 321111 1 1
-<000001> /CDB/buffer/dbill BJMSC4.2005.05.01.1115.45 20050526120916 200505260918 1221111 1 1
-<000002> ../buffer/20050507 BJMSC5.2005.05.07.1100.44 20050526121011 200505261015 321111 1 1
-<000002> ../buffer/20050501 BJMSC5.2005.05.01.1115.45 20050526121016 200505261018 1221111 1 1
-
-----------------------------------------------------------------------------------------------------------------------
+（2）错误日志
+	文件：collect_err.%采集进程号%
+	内容:
+        -------------------------------------------------------------------------------------
+	  	发生时间         Wed May 19 11:16:16 2010
+	  	错误信息         main: clear file fail:./work/010_dir_tmp

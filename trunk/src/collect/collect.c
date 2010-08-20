@@ -155,9 +155,10 @@ static void usage(int status)
 {
 	FILE *output = status?stderr:stdout;
 	
-	fprintf(output,"Usage: %s [-o commit path] [-r collect run path] [-R recollect run path] [-p process number] [-m adjust minute] [-d]\n",g_szProgName);
+	fprintf(output,"Usage: %s [-o bill_commit_path] [-r run_path] [-R recollect_run_path] \
+                              [-p collect_process_number] [-m adjust_minute] [-d]\n",g_szProgName);
 	fprintf(output,"\nOptions:\n");
-	fprintf(output,"        -o file commit directory, default is ./data\n");
+	fprintf(output,"        -o file commit directory, default is ./data/collect\n");
 	fprintf(output,"        -r collect run directory, default is ./\n");
 	fprintf(output,"        -R recollect run directory, can be null.\n");
 	fprintf(output,"        -p max parallel process number, default is 1\n");
