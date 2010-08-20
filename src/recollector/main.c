@@ -40,17 +40,17 @@ static void usage(int status)
     FILE *output = status?stderr:stdout;
     
     fprintf(output, "Usage: %s [-c collect_path] [-p pretreat_path] [-r run_path] \
-                               [-x collect_process_num] [-y pretreat_process_num] \
+                               [-x collect_process_max_num] [-y pretreat_process_max_num] \
                                [-b csv_backup_path] [-f] [-d]\n", progname);
     fprintf(output, "\nOptions:\n");
-    fprintf(output, "        -c collect path, default is ./data/collect\n");
-    fprintf(output, "        -p pretreat path, default is ./data/pretreat\n");
-    fprintf(output, "        -b csv backup path, no backup if not set\n");
-    fprintf(output, "        -r run path, default is ./\n");
-    fprintf(output, "        -x collect child process number.\n");
-    fprintf(output, "        -y pretreat child process number.\n");
-    fprintf(output, "        -f force downlad flag\n");
-    fprintf(output, "        -d debug flag\n");
+    fprintf(output, "        -c collect_path: collect path to save the bill files, default is ./data/collect\n");
+    fprintf(output, "        -p pretreat_path: pretreat path to save the csv files, default is ./data/pretreat\n");
+    fprintf(output, "        -b csv_backup_path: csv backup path, no backup if not set\n");
+    fprintf(output, "        -r run_path: program run path, default is ./\n");
+    fprintf(output, "        -x collect_process_max_num: collect child process max number, default is 1\n");
+    fprintf(output, "        -y pretreat_process_max_num: pretreat child process max number, default is 1\n");
+    fprintf(output, "        -f : enable force download flag\n");
+    fprintf(output, "        -d : enable debug flag\n");
 
 	exit(status);
 }

@@ -112,14 +112,14 @@ static void usage(int status)
     fprintf(output,"Usage: %s [-i csv_input_path] [-r run_path] [-p parallel_child_number] \
                               [-t interval_time] [-u db_user] [-w db_password] [-s db_server] [-d]\n",progname);
     fprintf(output,"\nOptions:\n");
-    fprintf(output,"        -i csv input path, default is ./in\n");
-    fprintf(output,"        -r insert program run path, default is ./\n");
-    fprintf(output,"        -p the parallel child number, default is 1\n");
-    fprintf(output,"        -t child process interval time");
-    fprintf(output,"        -u specify db_user\n");
-    fprintf(output,"        -w specify db_password\n");
-    fprintf(output,"        -s specify db_server\n");
-    fprintf(output,"        -d         debug flag\n");
+    fprintf(output,"        -i csv_input_path: csv input path, default is ./in\n");
+    fprintf(output,"        -r run_path: insert program run path, default is ./\n");
+    fprintf(output,"        -p parallel_child_number: the parallel child max number, default is 1\n");
+    fprintf(output,"        -t interval_time: child process poll interval time");
+    fprintf(output,"        -u db_user: specify db user\n");
+    fprintf(output,"        -w db_password: specify db password\n");
+    fprintf(output,"        -s db_server: specify db server\n");
+    fprintf(output,"        -d debug flag\n");
 
     exit(status);
 }
