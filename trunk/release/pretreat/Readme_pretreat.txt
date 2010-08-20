@@ -1,43 +1,23 @@
-1.目录结构
+pretreat: 话单解析程序，对话单采集程序采集到的话单文件进行解析，生成csv文件，提供给后续的话单入库程序入库。
+
+1.目录结构说明
   ./           程序目录
-  ./work       文件临时目录 程序运行时存放未完成的文件
-  ./log        程序日志目录
-  ./conf       程序配置目录
-
-2.文件命名规则
-  a.提交文件名为：原文件名.csv
-  b.日志文件分为，运行日志(pretreat_run.YYYYMMDD) 和 错误日志(pretreat_err.log.xxx)xxx为子进程编号
-  c.程序名为：pretreat
-
+  ./work       文件临时目录，程序运行时存放未完成的文件
+  ./log        程序日志目录，用来存放解析产生的日志文件
+  ./conf       程序配置目录，用来存放解析程序的配置文件
   
-3.程序参数
-  pretreat  [-o file commit path] [-i file from path] [-r run path] [-p parallel child number] [-d]
-  	       -o changes the file commit directory to that specified in path, default is ./out
-  	       -i changes the file from directory to that specified in path, default is ./in
-  	       -r changes the run directory to that specified in path, default is ./
-  	       -p changes the parallel child number, default is 1
-  	       -d debug specified
+2.程序参数说明
+  pretreat [-i bill_file_input_path] [-o csv_file_output_path] [-b csv_file_backup_path]
+           [-r run_path] [-p parallel_child_number] [-d]
+  	   -i bill_file_input_path: 话单文件的输入路径，默认为./in
+  	   -o csv_file_output_path: csv文件的输入路径，默认为./out
+  	   -r run_path: 程序的运行目录，默认为./
+  	   -p parallel_child_number: 设置解析进程的最大数目，默认为1
+  	   -d 启动调试模式
 
-4.提交文件
-  a.link工作目录文件至提交目录
-  b.记录pretreat_run.YYYYMMDD文件
-  c.清理work目录下,xxx_ 开头文件,xxx为子进程编号
-  d.unlink原文件
+3.配置文件说明
 
-5.临时文件名
-----------------------------------------------------------------------------------------------------------------------
-预处理过程中
-     临时文件名为：子进程编号(3位数字)_文件名
-
-
-6.文件格式
-运行日志
-说明：
-文件名 开始时间 结束时间 输入文件大小 输出文件大小 记录条数
-
-7.配置文件
-
-  (a) ./conf/module.conf
+（1） ./conf/module.conf
       格式:
            预处理模块编号 动态库路径名 函数名称
       要求:     
@@ -47,7 +27,7 @@
            1 ./conf/siemens.so siemens
            2 ./conf/huawei.so  huawei
   
-  (b) ./conf/pretreat.conf
+（2） ./conf/pretreat.conf
       格式:
            采集点编号 使用的预处理模块编号
       要求:     
@@ -67,4 +47,16 @@
            <000011> 2
            <000012> 2
            
-  
+4. 日志文件说明
+（1）运行日志
+文件：pretreat_run.%网元名称%.%日期%
+内容：文件名 文件大小 解析开始时间 解析结束时间 解析话单条数
+示例：000212_nsn_huzgs7_20100522162536_CF2059.DAT 760368 20100527173803 20100527173803  2320	
+
+（2）错误日志
+文件：pretreat.err.%解析进程号%
+内容:    ------------------------------------------------------------------
+  	发生时间         Wed May 19 11:16:16 2010
+  	错误信息         main: clear file fail:./work/010_dir_tmp
+
+
