@@ -1,1 +1,1 @@
-/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/pretreat/pretreat -i/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/collect -o/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/pretreat -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/pretreat -p50 >/dev/null 2>/dev/null
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/pretreat/pretreat -i/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/collect -o/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/pretreat -b/opt/BOCO.DAL/RT_MON/zj-bill-parser/backup/pretreat -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/pretreat -p50 >/dev/null 2>/dev/null

@@ -1606,6 +1606,7 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
     const char      *ptr_front = NULL, *ptr_back = NULL;
     char            table_date[MAX_DATE];
 	char			path_name[MAX_FILENAME];
+    char            cmd[MAX_BUFFER];
     int             count, len, i;
 
     /* 初始化缓存数组 */
@@ -1640,7 +1641,7 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
     /* CSV文件以'_'间隔的元素最少有6个 */
     if(count < 6)
     {
-		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+		err_log("get_backup_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     }
  
@@ -1659,7 +1660,7 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
        || strlen(elems[4]) == 0
        || strlen(elems[5]) == 0)
     {
-		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+		err_log("get_bakcup_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     } 
 
@@ -1668,7 +1669,7 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
     /* 第二个元素elems[1]是厂家缩写，目前只可能是hw和nsn */
     if((strcmp(elems[1], "hw") != 0) && (strcmp(elems[1], "nsn") != 0))
     {
-		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+		err_log("get_backup_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     }
     
@@ -1686,7 +1687,7 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
     len = strlen(elems[4]);
     if(len != 14)
     {
-		err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+		err_log("get_backup_filename: file name format incorrect: %s\n", out_file_name);
         return 1;
     }
 
@@ -1694,7 +1695,7 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
     {
         if(!isdigit(elems[4][i]))
         {
-            err_log("get_commit_filename: file name format incorrect: %s\n", out_file_name);
+            err_log("get_backup_filename: file name format incorrect: %s\n", out_file_name);
             return 1;
         }
     }
@@ -1713,12 +1714,21 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
 	P();
 	if(access(path_name,F_OK) == -1)
 	{
+        sprintf(cmd, "mkdir -p %s", path_name);
+        if(system(cmd) == -1)
+        {
+			err_log("get_backup_filename: mkdir fail: %s\n", path_name);
+			V();
+			return 1;
+        }
+        /*
 		if(mkdir(path_name,0755)!=0)
 		{
-			err_log("get_commit_filename: mkdir incorrect: %s\n", path_name);
+			err_log("get_backup_filename: mkdir fail: %s\n", path_name);
 			V();
 			return 1;
 		}
+        */
 	}
 	V();
 
