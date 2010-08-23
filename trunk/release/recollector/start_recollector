@@ -1,1 +1,1 @@
-/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/recollector/recollector -c/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/recollect -p/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/pretreat -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/recollector -x50 -y50 -f
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/recollector/recollector -c/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/recollect -p/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/pretreat -b/opt/BOCO.DAL/RT_MON/zj-bill-parser/backup/pretreat -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/recollector -x50 -y50 -f

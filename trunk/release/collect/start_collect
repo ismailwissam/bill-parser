@@ -1,1 +1,1 @@
-/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/collect -o/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/collect -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/run -R/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/recollector -p100 > /dev/null 2>/dev/null
+/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/collect -o/opt/BOCO.DAL/RT_MON/zj-bill-parser/data/collect -r/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect -R/opt/BOCO.DAL/RT_MON/zj-bill-parser/release/recollector -p100 > /dev/null 2>/dev/null
