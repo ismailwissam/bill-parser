@@ -2038,6 +2038,26 @@ static int backup_file(collect_conf * pCollectConf, const char * szRemoteFileNam
             return 1;
 		}
 
+        /* 目标文件备份文件已经存在，如果设置了force_update标志，
+         * 则先删除再备份，否则略过不备份 */
+        if(access(szBackupName, F_OK) == 0)
+        {
+            if(force_update)
+            {
+                /* 删除旧的文件 */
+                if(unlink(szBackupName) != 0)
+                {
+                    err_log("backup_file: unlink old backup file fail: %s\n", szBackupName);
+                    return 1;
+                }
+            }
+            else
+            {
+                //err_log("backup file: old backup file already exist: %s\n", szBackupName);
+                return 0;
+            }
+        }
+
         sprintf(szCommand, "cp %s %s", szTempFileName, szBackupName);
         if(system(szCommand) == -1)
         {
@@ -2045,6 +2065,7 @@ static int backup_file(collect_conf * pCollectConf, const char * szRemoteFileNam
             return 1;
         }
 	} 	
+
 	return 0;
 }
 
@@ -2082,31 +2103,45 @@ static int commit_file(collect_conf * p_collect_conf, const char * remote_file_n
 		sprintf(tmp_file_name,"%s/%03d_%s",WORK_DIR,p_collect_conf->current_process_number,remote_file_name);
 		sprintf(tmp_file_name_2,"%s/%s",collect_dir,commit_name);
   
-		if(access(tmp_file_name_2,F_OK)==-1)
-		{
-            /* 如果文件以gz开头,则进行解压 */
-            if( 'g' == remote_file_name[0] && 'z' == remote_file_name[1] )
+        /* 如果目标文件已经存在，并设置了force_update标志，
+         * 则先删除旧的文件再提交；否则就略过不提交 */
+        if(access(tmp_file_name_2, F_OK) == 0)
+        {
+            if(force_update)
             {
-                sprintf(szCommand, "gzip -S .dat -d %s", tmp_file_name);
-                if(system(szCommand) == -1)
+                if(unlink(tmp_file_name_2, F_OK) != 0)
                 {
-                    err_log("commit_file: uncompress %s fail\n", tmp_file_name);
+                    err_log("commit_file: unlink old file fail: %s\n", tmp_file_name_2);
                     return 1;
                 }
-                tmp_file_name[strlen(tmp_file_name) - 4] = '\0';
             }
-     
-            if(link(tmp_file_name,tmp_file_name_2)!=0)
-			{
-				err_log("commit_file: link %s to %s fail\n",tmp_file_name,tmp_file_name_2);
+            else
+            {
+                //err_log("commit_file: target file %s exist\n",tmp_file_name_2);
+                return 0;
+            }
+        }
+
+        /* 如果文件以gz开头,则进行解压 */
+        if( 'g' == remote_file_name[0] && 'z' == remote_file_name[1] )
+        {
+            sprintf(szCommand, "gzip -S .dat -d %s", tmp_file_name);
+            if(system(szCommand) == -1)
+            {
+                err_log("commit_file: uncompress %s fail\n", tmp_file_name);
                 return 1;
-			}
-		}
-		else
-		{
-			err_log("commit_file: target file %s exist\n",tmp_file_name_2);
-		}
+            }
+            tmp_file_name[strlen(tmp_file_name) - 4] = '\0';
+        }
+ 
+        /* 提交文件 */
+        if(link(tmp_file_name,tmp_file_name_2)!=0)
+        {
+            err_log("commit_file: link %s to %s fail\n",tmp_file_name,tmp_file_name_2);
+            return 1;
+        }
     }
+
 	return 0;
 }
 
