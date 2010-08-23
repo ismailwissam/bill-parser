@@ -293,13 +293,24 @@ static int commit_file(const char * in_file_name, const char * out_file_name, co
         /* csv文件临时工作目录 */
         sprintf(tmp_file_name, "%s/%s", work_dir, out_files[i]);
 
-		// 获取提交目录
+		/* 获取提交目录 */
 		if (0 != get_commit_filename(out_files[i], commit_file_name))
 		{
 			err_log("commit_file: get_commit_filename fail\n");
 			ret = 1;
 			goto Exit_Pro;
 		}
+
+        /* 如果目标文件已经存在，先删除 */
+        if(access(commit_file_name, F_OK) == 0)
+        {
+            if(unlink(commit_file_name) != 0)
+            {
+                err_log("commit_file: unlink old file %s fail\n", commit_file_name);
+                ret = 1;
+                goto Exit_Pro;
+            }
+        }
 
         /* 复制工作目录文件至提交目录 */
         if(link(tmp_file_name, commit_file_name) != 0)
@@ -318,6 +329,17 @@ static int commit_file(const char * in_file_name, const char * out_file_name, co
                 err_log("commit_file: get_backup_filename fail\n");
                 ret = 1;
                 goto Exit_Pro;
+            }
+
+            /* 如果目标文件已经存在，先删除 */
+            if(access(backup_file_name, F_OK) == 0)
+            {
+                if(unlink(backup_file_name) != 0)
+                {
+                    err_log("commit_file: unlink old file %s fail\n", commit_file_name);
+                    ret = 1;
+                    goto Exit_Pro;
+                }
             }
 
             /* 复制工作目录文件至备份目录 */
@@ -1139,15 +1161,7 @@ static int get_backup_filename(const char * out_file_name, char * ret_backup_fil
 			V();
 			return 1;
         }
-        /*
-		if(mkdir(path_name,0755)!=0)
-		{
-			err_log("get_commit_filename: mkdir incorrect: %s\n", path_name);
-			V();
-			return 1;
-		}
-        */
-	}
+   	}
 	V();
 
     /* 返回备份文件名称 */
