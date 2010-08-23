@@ -2109,7 +2109,7 @@ static int commit_file(collect_conf * p_collect_conf, const char * remote_file_n
         {
             if(force_update)
             {
-                if(unlink(tmp_file_name_2, F_OK) != 0)
+                if(unlink(tmp_file_name_2) != 0)
                 {
                     err_log("commit_file: unlink old file fail: %s\n", tmp_file_name_2);
                     return 1;
