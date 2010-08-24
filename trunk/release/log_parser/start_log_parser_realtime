@@ -1,4 +1,4 @@
 #!/bin/csh
 source ~/.cshrc
 set CUR_DATE=`date +%Y%m%d`
-perl /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/log_parser/log_parser -r /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/log_parser -c /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/run/log -p /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/pretreat/log -i /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/insert/log -d $CUR_DATE
+perl /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/log_parser/log_parser -r /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/log_parser -c /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/collect/log -p /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/pretreat/log -i /opt/BOCO.DAL/RT_MON/zj-bill-parser/release/insert/log -d $CUR_DATE
