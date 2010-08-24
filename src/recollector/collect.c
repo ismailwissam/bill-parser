@@ -731,16 +731,16 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
             //获取话单文件的生成日期
 			strcpy(szFileDateStamp, szContent[3]);
 
-            //如果话单文件的生成日期小于采集开始日期，则直接跳过该文件夹
+            //如果话单文件的生成日期小于采集开始日期，则跳过该文件夹
 			if(strncmp(szFileDateStamp, szCollectStartDate, 8) < 0)
 			{
 				continue;	
 			}
 	
-            // 如果话单文件的生成日期大于采集结束日期，则直接跳过该文件夹
+            // 如果话单文件的生成日期大于采集结束日期，则直接退出本此采集
             if(strncmp(szFileDateStamp, szCollectEndDate, 8) > 0)
             {
-                continue;
+                break;
             }
 
 			/* 删除旧的下载文件列表文件 */
@@ -816,40 +816,44 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
                     continue;
                 }
 
-				//判断是否要下载
+				//获取话单文件的生成时间戳
 				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
 				{
 					continue;
 				}
 
-                //如果话单文件的生成时间小于采集开始时间，则不下载
+                //保存文件时间戳到临时时间点
+				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果话单文件的生成时间小于采集开始时间，则不下载，获取下一个话单文件
 				if(strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
 				{
 					continue;	
 				}
 
-                //如果话单文件的生成时间大于采集结束时间，则不下载
+                //如果话单文件的生成时间大于采集结束时间，并退出本此采集
                 if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
                 {
-                    continue;
+                    break;
                 }
 
-                //如果这个话单文件之前已经下载过，则不下载；但更新时间戳
+                //如果这个话单文件之前已经下载过
+                //如果没有设置强制更新标志-f, 则不再下载，获取下一个文件
+                //如果设置了强制更新标志-f，则强制重新下载
 				if(get_backup_name(&curCollectConf,szContent[3],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
+
 				if(0 == access(szBackupFile,F_OK))  //文件存在
 				{
                     if(!force_update)
                     {
-                        //给时间戳到临时时间端点
-                        if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0)
-                        {
-                            strcpy(szTimePoint, szFileTimeStamp);
-                        }
                         continue;
                     }
 				}
@@ -884,12 +888,6 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[3]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 ) //大者写入
-				{
-					strcpy(szTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -971,16 +969,16 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
             //获取话单文件的生成日期
 			strcpy(szFileDateStamp, szContent[3]);
 
-            //如果话单文件的生成日期小于采集开始日期，则直接跳过该文件夹
+            //如果话单文件的生成日期小于采集开始日期，则跳过该文件夹
 			if(strncmp(szFileDateStamp, szCollectStartDate, 8) < 0)
 			{
 				continue;	
 			}
 	
-            // 如果话单文件的生成日期大于采集结束日期，则直接跳过该文件夹
+            // 如果话单文件的生成日期大于采集结束日期，则直接退出本此采集
             if(strncmp(szFileDateStamp, szCollectEndDate, 8) > 0)
             {
-                continue;
+                break;
             }
 
 			/* 删除旧的下载文件列表文件 */
@@ -1056,41 +1054,45 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
                     continue;
                 }
 
-				//判断是否要下载
+				//获取话单文件的时间戳
 				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
 				{
 					continue;
 				}
 
-                //如果话单文件的生成时间小于采集开始时间，则不下载
+                //保存文件时间戳到临时时间点
+				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果话单文件的生成时间小于采集开始时间，则不下载，获取下一个话单文件
 				if(strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
 				{
 					continue;	
 				}
 
-                //如果话单文件的生成时间大于采集结束时间，则不下载
+                //如果话单文件的生成时间大于采集结束时间，则退出本此采集
                 if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
                 {
-                    continue;
+                    break;
                 }
 
-                //如果这个话单文件之前已经下载过，则不下载；但更新时间戳
+                //如果这个话单文件之前已经下载过
+                //如果设置了强制更新标志-f，则强制重新下载
+                //如果没有设置强制更新标志-f，则略过本话单获取下一个
 				if(get_backup_name(&curCollectConf,szContent[3],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
+
 				if(0 == access(szBackupFile,F_OK))  //文件存在
 				{
                     if(!force_update)
                     {
-                        //给时间戳到临时时间端点
-                        if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0)
-                        {
-                            strcpy(szTimePoint, szFileTimeStamp);
-                        }
-                        continue;
+                          continue;
                     }
 				}
 
@@ -1124,12 +1126,6 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[3]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 ) //大者写入
-				{
-					strcpy(szTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -1211,16 +1207,16 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
             //获取话单文件的生成日期
 			strcpy(szFileDateStamp, szContent[8]);
 
-            //如果话单文件的生成日期小于采集开始日期，则直接跳过该采集文件夹 
+            //如果话单文件的生成日期小于采集开始日期，则跳过该采集文件夹 
 			if (strncmp(szFileDateStamp, szCollectStartDate, 8) < 0)
 			{
 				continue;	
 			}
 		
-            // 如果话单文件的生成日期大于采集结束日期，则直接跳过该文件夹
+            // 如果话单文件的生成日期大于采集结束日期，则直接退出本此采集
             if(strncmp(szFileDateStamp, szCollectEndDate, 8) > 0)
             {
-                continue;
+                break;
             }
 
 			/* 删除旧的下载文件列表文件 */
@@ -1297,7 +1293,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
                     continue;
                 }
 
-				//判断是否要下载
+				//判断是否为文件信息
 				if ( '-' != szContent[0][0] ) //文件
 				{
 					continue;	
@@ -1309,34 +1305,38 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 				}
 
-                //如果话单文件的生成时间小于采集开始时间，则不下载
-				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0) //比较时间
+                //保存文件时间戳到临时时间点
+				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果话单文件的生成时间小于采集开始时间，则不下载，判断下一个话单文件
+				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
 				{
 					continue;	
 				}
 
-                //如果话单文件的生成时间大于采集结束时间，则不下载
+                //如果话单文件的生成时间大于采集结束时间，则退出本此下载
                 if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
                 {
-                    continue;
+                    break;
                 }
 
-                //如果该话单文件之前已经下载过，则不下载；但更新下载时间戳
+                //如果该话单文件之前已经下载过
+                //如果设置了强制更新标志-f，则强制重新下载
+                //如果没有设置强制更新标志-f，则略过该话单获取下一个
 				if(get_backup_name(&curCollectConf,szContent[8],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
+
 				if(0 == access(szBackupFile,F_OK))  //文件存在
 				{
                     if(!force_update)
                     {
-                        //给时间戳到临时时间端点
-                        if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0)
-                        {
-                            strcpy(szTimePoint, szFileTimeStamp);
-                        }
                         continue;
                     }
 				}
@@ -1371,12 +1371,6 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[8]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
-				{
-					strcpy(szTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -1458,16 +1452,16 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
             //获取话单文件的生成日期
 			strcpy(szFileDateStamp, szContent[8]);
 
-            //如果话单文件的生成日期小于采集开始日期，则直接跳过该采集文件夹 
+            //如果话单文件的生成日期小于采集开始日期，则跳过该采集文件夹 
 			if (strncmp(szFileDateStamp, szCollectStartDate, 8) < 0)
 			{
 				continue;	
 			}
 		
-            // 如果话单文件的生成日期大于采集结束日期，则直接跳过该文件夹
+            // 如果话单文件的生成日期大于采集结束日期，则直接退出本此采集
             if(strncmp(szFileDateStamp, szCollectEndDate, 8) > 0)
             {
-                continue;
+                break;
             }
 
 			/* 删除旧的下载文件列表文件 */
@@ -1556,34 +1550,38 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 				}
 
-                //如果话单文件的生成时间小于采集开始时间，则不下载
-				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0) //比较时间
+                //保存文件时间戳到临时时间点
+				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果话单文件的生成时间小于采集开始时间，则不下载，判断下一个话单文件
+				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
 				{
 					continue;	
 				}
 
-                //如果话单文件的生成时间大于采集结束时间，则不下载
+                //如果话单文件的生成时间大于采集结束时间，则退出本此下载
                 if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
                 {
-                    continue;
+                    break;
                 }
 
-                //如果该话单文件之前已经下载过，则不下载；但更新下载时间戳
+                //如果该话单文件之前已经下载过，则不下载
+                //如果设置了强制更新标志-f，则重新下载
+                //如果没有设置强制更新标志-f，则略过该话单判断下一个
 				if(get_backup_name(&curCollectConf,szContent[8],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
+
 				if(0 == access(szBackupFile,F_OK))  //文件存在
 				{
                     if(!force_update)
                     {
-                        //给时间戳到临时时间端点
-                        if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0)
-                        {
-                            strcpy(szTimePoint, szFileTimeStamp);
-                        }
                         continue;
                     }
 				}
@@ -1618,12 +1616,6 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[8]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
-				{
-					strcpy(szTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -1705,35 +1697,39 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			{
 				continue;
 			}
+	
+			//保存文件时间戳到临时时间点
+			if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
+			{
+				strcpy(szTimePoint, szFileTimeStamp);
+			}
 
-            //如果话单文件的生成时间小于采集开始时间，则不下载
+            //如果话单文件的生成时间小于采集开始时间，则不下载，判断下一个
 			if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
 			{
 				continue;	
 			}
 
-            //如果话单文件的生成时间大于采集结束时间，则不下载
+            //如果话单文件的生成时间大于采集结束时间，则退出本此下载
             if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
             {
-                continue;
+                break;
             }
 
-            //如果该话单文件之前已经下载过，则不下载；但更新下载时间戳
+            //如果该话单文件之前已经下载过
+            //如果设置了强制更新标志-f，则重新下载
+            //如果没有设置强制更新标志-f，则略过还话单判断下一个
 			if(get_backup_name(&curCollectConf,szContent[5],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
 			{
 				err_log("point_collect: get_backup_name fail\n");
 				nRet = 1;
 				goto Exit_Pro;
 			}
+
 			if(0 == access(szBackupFile,F_OK))  //文件存在
 			{
                 if(!force_update)
                 {
-                    //给时间戳到临时时间端点
-                    if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0)
-                    {
-                        strcpy(szTimePoint, szFileTimeStamp);
-                    }
                     continue;
                 }
 			}
@@ -1769,13 +1765,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				nRet = 1;
 				goto Exit_Pro;
 			}
-		
-			//给时间戳到临时时间端点
-			if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
-			{
-				strcpy(szTimePoint, szFileTimeStamp);
-			}
-		}	
+        }	
 	}
     else
     {

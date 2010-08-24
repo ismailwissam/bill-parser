@@ -1010,25 +1010,30 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 	int nRetVal;
 	//配置文件结构
 	collect_conf curCollectConf;
+
 	//目录列表,文件列表,时间端点文件名
 	char szDirListFile[MAX_FILENAME];
 	char szFileListFile[MAX_FILENAME];
 	char szTimePointFile[MAX_FILENAME];
 	char szBackupFile[MAX_FILENAME];
+
 	//文件句柄
 	FILE * pFileDirList = NULL;
 	FILE * pFileFileList = NULL;
 	FILE * pFileTimePoint = NULL;
+
 	//临时buffer
 	char szBuff[MAX_BUFFER];
+
 	//解析数组
 	char szContent[9][MAX_FILENAME];
+
 	//时间端点和临时时间端点
+	char szCollectStartTime[MAX_TIME];
+	char szCollectStartDate[MAX_DATE];
 	char szTimePoint[MAX_TIME];
-	char szTempTimePoint[MAX_TIME];
-	char szTimePointPre[MAX_DATE];
 	char szFileTimeStamp[MAX_TIME];
-	char szFileTimeStampPre[MAX_DATE];
+	char szFileDateStamp[MAX_DATE];
 	long lFileSize;
 
 	char  file_name[MAX_FILENAME];
@@ -1064,28 +1069,28 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 	pFileTimePoint = fopen(szTimePointFile , "r"); 
 	if( (NULL == pFileTimePoint) )
 	{
-		strcpy(szTimePoint, g_szCollectStartTime);
+		strcpy(szCollectStartTime, g_szCollectStartTime);
 	}
-	else if ( NULL == fgets(szTimePoint, sizeof(szTimePoint), pFileTimePoint) )
+	else if ( NULL == fgets(szCollectStartTime, sizeof(szCollectStartTime), pFileTimePoint) )
 	{
-		strcpy(szTimePoint, g_szCollectStartTime);
+		strcpy(szCollectStartTime, g_szCollectStartTime);
 	}
     else
     {
-        if(strncmp(szTimePoint, g_szCollectStartTime, 14) < 0)
+        if(strncmp(szCollectStartTime, g_szCollectStartTime, 14) < 0)
         {
             /* 生成一条补采记录 */
-            if(gen_recollect_record(&curCollectConf, szTimePoint, g_szCollectStartTime) != 0)
+            if(gen_recollect_record(&curCollectConf, szCollectStartTime, g_szCollectStartTime) != 0)
             {
                 err_log("point_collect: generate recollect record fail\n");
             }
 
-            strcpy(szTimePoint, g_szCollectStartTime);
+            strcpy(szCollectStartTime, g_szCollectStartTime);
         }
     }
-    strcpy(szTempTimePoint, szTimePoint);
-	strncpy(szTimePointPre, szTimePoint, 8);
-	szTimePointPre[8] = '\0';
+    strcpy(szTimePoint, szCollectStartTime);
+	strncpy(szCollectStartDate, szCollectStartTime, 8);
+	szCollectStartDate[8] = '\0';
     if(pFileTimePoint != NULL)
     {
         fclose(pFileTimePoint);
@@ -1177,8 +1182,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			{
 				continue;	
 			}
-			strcpy(szFileTimeStampPre, szContent[3]);
-			if ( 0 < strncmp(szTimePointPre, szFileTimeStampPre, 8))
+
+            /* 提取文件夹名称，即话单生成日期 */
+			strcpy(szFileDateStamp, szContent[3]);
+
+            /* 如果话单生成日期小于采集点日期，则略过，判断下一下 */
+			if ( strncmp(szFileDateStamp, szCollectStartDate, 8) < 0)
 			{
 				continue;	
 			}
@@ -1256,35 +1265,39 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
                     continue;
                 }
 
-				//判断是否要下载
-				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileTimeStampPre))//拿到文件时间戳
+				//获取话单文件生成时间戳
+				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
 				{
 					continue;
 				}
 
-				if ( 0 < strncmp(szTimePoint, szFileTimeStamp, 14)) //比较时间
+                //保存文件时间戳到临时时间端点
+				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果话单文件的生成时间小于开始采集时间，则略过判断下一个
+				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0 )
 				{
 					continue;	
 				}
 
-				if(get_backup_name(&curCollectConf,szContent[3],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
+                //如果之前已经下载过，就不再下载
+				if(get_backup_name(&curCollectConf,szContent[3],szFileTimeStamp,szBackupFile)!=0)
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
-				if(0 == access(szBackupFile,F_OK))  //文件存在就不下载
+
+				if(0 == access(szBackupFile,F_OK))
 				{
-					//给时间戳到临时时间端点
-					if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-					{
-						strcpy(szTempTimePoint, szFileTimeStamp);
-					}
 					continue;
 				}
 
                 //下载文件
-				if(get_file_passive(&curCollectConf, szFileTimeStampPre, szContent[3], &lFileSize)!=0)
+				if(get_file_passive(&curCollectConf, szFileDateStamp, szContent[3], &lFileSize)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_passive FAIL\n",nCollectPointNo,szContent[3]);
 					nRet = 1;		
@@ -1308,17 +1321,11 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //记录日志
-				if(run_log(&curCollectConf,szFileTimeStampPre,szContent[3],lFileSize,szFileTimeStamp)!=0)
+				if(run_log(&curCollectConf,szFileDateStamp,szContent[3],lFileSize,szFileTimeStamp)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[3]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-				{
-					strcpy(szTempTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -1396,8 +1403,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			{
 				continue;	
 			}
-			strcpy(szFileTimeStampPre, szContent[3]);
-			if ( 0 < strncmp(szTimePointPre, szFileTimeStampPre, 8))
+
+            //提取文件夹名称，即话单生成日期
+			strcpy(szFileDateStamp, szContent[3]);
+
+            //如果话单生成日期小于开始采集日期，则略过该文件夹判断下一个
+			if ( strncmp(szFileDateStamp, szCollectStartDate, 8) < 0 )
 			{
 				continue;	
 			}
@@ -1475,35 +1486,39 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
                     continue;
                 }
 
-				//判断是否要下载
-				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileTimeStampPre))//拿到文件时间戳
+				//获取话单文件生成时间戳
+				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
 				{
 					continue;
 				}
 
-				if ( 0 < strncmp(szTimePoint, szFileTimeStamp, 14)) //比较时间
+                //保存文件时间戳到临时时间端点
+				if ( strncmp(szTimePoint, szFileTimeStamp, 14) < 0 )
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果文件时间戳小于开始采集时间，则略过该话单判断下一个
+				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0 )
 				{
 					continue;	
 				}
 
-				if(get_backup_name(&curCollectConf,szContent[3],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
+                //如果之前已经下载过，则不在下载该话单
+				if(get_backup_name(&curCollectConf,szContent[3],szFileTimeStamp,szBackupFile)!=0)
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
-				if(0 == access(szBackupFile,F_OK))  //文件存在就不下载
+
+				if(0 == access(szBackupFile,F_OK))
 				{
-					//给时间戳到临时时间端点
-					if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-					{
-						strcpy(szTempTimePoint, szFileTimeStamp);
-					}
-					continue;
+                    continue;
 				}
 
                 //下载文件
-				if(get_file_port(&curCollectConf, szFileTimeStampPre, szContent[3], &lFileSize)!=0)
+				if(get_file_port(&curCollectConf, szFileDateStamp, szContent[3], &lFileSize)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_port FAIL\n",nCollectPointNo,szContent[3]);
 					nRet = 1;		
@@ -1527,17 +1542,11 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //记录日志
-				if(run_log(&curCollectConf,szFileTimeStampPre,szContent[3],lFileSize,szFileTimeStamp)!=0)
+				if(run_log(&curCollectConf,szFileDateStamp,szContent[3],lFileSize,szFileTimeStamp)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[3]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-				{
-					strcpy(szTempTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -1615,8 +1624,11 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				continue;	
 			}
 
-			strcpy(szFileTimeStampPre, szContent[8]);
-			if ( 0 < strncmp(szTimePointPre, szFileTimeStampPre, 8))
+            // 提取文件夹名称，即话单生成日期
+			strcpy(szFileDateStamp, szContent[8]);
+
+            // 如果话单生成日期小于开始采集日期，则略过该文件夹判断下一个
+			if ( strncmp(szFileDateStamp, szCollectStartDate, 8) < 0 )
 			{
 				continue;	
 			}
@@ -1700,33 +1712,40 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				{
 					continue;	
 				}
-				if (0 != convert_date_hw(szFileTimeStamp, szContent[7], szFileTimeStampPre))//拿到文件时间戳
+
+                //获取话单文件时间戳
+				if (0 != convert_date_hw(szFileTimeStamp, szContent[7], szFileDateStamp))
 				{
 					continue;
 				}
-				if ( 0 < strncmp(szTimePoint, szFileTimeStamp, 14)) //比较时间
+
+                //保存时间戳到临时时间端点
+				if ( 0 > strncmp(szTimePoint, szFileTimeStamp, 14))
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果文件时间戳小于开始采集时间，则略过该话单判断下一个
+				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0 )
 				{
 					continue;	
 				}
 
-				if(get_backup_name(&curCollectConf,szContent[8],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
+                //如果之前该话单已经下载过，则不再下载
+				if(get_backup_name(&curCollectConf,szContent[8],szFileTimeStamp,szBackupFile)!=0)
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
-				if(0 == access(szBackupFile,F_OK))  //文件存在就不下载
+
+				if(0 == access(szBackupFile,F_OK))
 				{
-					//给时间戳到临时时间端点
-					if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-					{
-						strcpy(szTempTimePoint, szFileTimeStamp);
-					}
 					continue;
 				}
 
                 //下载文件
-				if(get_file_port(&curCollectConf, szFileTimeStampPre, szContent[8], &lFileSize)!=0)
+				if(get_file_port(&curCollectConf, szFileDateStamp, szContent[8], &lFileSize)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_port FAIL\n",nCollectPointNo,szContent[8]);
 					nRet = 1;		
@@ -1750,17 +1769,11 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //记录日志
-				if(run_log(&curCollectConf,szFileTimeStampPre,szContent[8],lFileSize,szFileTimeStamp)!=0)
+				if(run_log(&curCollectConf,szFileDateStamp,szContent[8],lFileSize,szFileTimeStamp)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[8]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-				{
-					strcpy(szTempTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -1839,8 +1852,11 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				continue;	
 			}
 
-			strcpy(szFileTimeStampPre, szContent[8]);
-			if ( 0 < strncmp(szTimePointPre, szFileTimeStampPre, 8))
+            //提取文件夹名称，即话单生成日期
+			strcpy(szFileDateStamp, szContent[8]);
+
+            //如果话单生成日期小于开始采集日期，则略过该文件夹判断下一个
+			if ( strncmp(szFileDateStamp, szCollectStartDate, 8) < 0 )
 			{
 				continue;	
 			}
@@ -1919,38 +1935,45 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
                     continue;
                 }
 
-				//判断是否要下载
+				//判断是否文件信息
 				if ( '-' != szContent[0][0] ) //文件
 				{
 					continue;	
 				}
-				if (0 != convert_date_hw(szFileTimeStamp, szContent[7], szFileTimeStampPre))//拿到文件时间戳
+
+                //获取话单文件生成时间戳
+				if (0 != convert_date_hw(szFileTimeStamp, szContent[7], szFileDateStamp))
 				{
 					continue;
 				}
-				if ( 0 < strncmp(szTimePoint, szFileTimeStamp, 14)) //比较时间
+
+                //保存时间戳到临时时间端点
+				if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0)
+				{
+					strcpy(szTimePoint, szFileTimeStamp);
+				}
+
+                //如果话单文件时间戳小于开始采集时间，则略过该话单判断下一个
+				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
 				{
 					continue;	
 				}
 
-				if(get_backup_name(&curCollectConf,szContent[8],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
+                //如果之前该话单已经下载过，则不再下载
+				if(get_backup_name(&curCollectConf,szContent[8],szFileTimeStamp,szBackupFile)!=0)
 				{
 					err_log("point_collect: get_backup_name fail\n");
 					nRet = 1;
 					goto Exit_Pro;
 				}
-				if(0 == access(szBackupFile,F_OK))  //文件存在就不下载
+
+				if(0 == access(szBackupFile,F_OK))
 				{
-					//给时间戳到临时时间端点
-					if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-					{
-						strcpy(szTempTimePoint, szFileTimeStamp);
-					}
 					continue;
 				}
 
                 //下载文件
-				if(get_file_passive(&curCollectConf, szFileTimeStampPre, szContent[8], &lFileSize)!=0)
+				if(get_file_passive(&curCollectConf, szFileDateStamp, szContent[8], &lFileSize)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,get_file_passive FAIL\n",nCollectPointNo,szContent[8]);
 					nRet = 1;		
@@ -1974,17 +1997,11 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //记录日志
-				if(run_log(&curCollectConf,szFileTimeStampPre,szContent[8],lFileSize,szFileTimeStamp)!=0)
+				if(run_log(&curCollectConf,szFileDateStamp,szContent[8],lFileSize,szFileTimeStamp)!=0)
 				{
 					err_log("point_collect: nCollectPointNo=%d,szRemoteFileName=%s,run_log FAIL\n",nCollectPointNo,szContent[8]);
 					nRet = 1;		
 					goto Exit_Pro;
-				}
-
-                //给时间戳到临时时间端点
-				if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-				{
-					strcpy(szTempTimePoint, szFileTimeStamp);
 				}
 			}
 		}
@@ -2049,40 +2066,48 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				szContent[4],szContent[5]) != 6 )
 				continue;
 
-			//判断是否要下载
-			if ( 10 != strlen(szContent[5]) )//文件名10个字符
+			//nsn话单文件名固定是10个字符
+			if ( 10 != strlen(szContent[5]) )
 			{
 				continue;	
 			}			
+
+            //文件扩展名固定是.DAT
 			if ( '.' != szContent[5][6] || 'D' != szContent[5][7] || 
-				 'A' != szContent[5][8] || 'T' != szContent[5][9] ) //文件名尾固定.DAT
-			{
-				continue;	
-			}
-			if (0 != convert_date_nsn(szFileTimeStamp, szContent[0], szContent[1]))//拿到文件时间戳
-			{
-				continue;
-			}
-			if ( 0 < strncmp(szTimePoint, szFileTimeStamp, 14)) //比较时间
+				 'A' != szContent[5][8] || 'T' != szContent[5][9] )
 			{
 				continue;	
 			}
 
-			if(get_backup_name(&curCollectConf,szContent[5],szFileTimeStamp,szBackupFile)!=0) //获取备份文件名
+            //获取话单文件生成时间戳
+			if (0 != convert_date_nsn(szFileTimeStamp, szContent[0], szContent[1]))//拿到文件时间戳
+			{
+				continue;
+			}
+	
+			//保存时间戳到临时时间端点
+			if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0) //大者写入
+			{
+				strcpy(szTimePoint, szFileTimeStamp);
+			}
+
+            //如果话单生成时间戳小于开始采集时间，则略过该话单判断下一个
+			if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+			{
+				continue;	
+			}
+
+            //如果之前该话单已经下载过，则不再下载
+			if(get_backup_name(&curCollectConf,szContent[5],szFileTimeStamp,szBackupFile)!=0)
 			{
 				err_log("point_collect: get_backup_name fail\n");
 				nRet = 1;
 				goto Exit_Pro;
 			}
 
-			if(0 == access(szBackupFile,F_OK))  //文件存在就不下载
+			if(0 == access(szBackupFile,F_OK))
 			{
-				//给时间戳到临时时间端点
-				if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-				{
-					strcpy(szTempTimePoint, szFileTimeStamp);
-				}
-				continue;
+                continue;
 			}
 
 			//下载文件
@@ -2116,13 +2141,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				nRet = 1;
 				goto Exit_Pro;
 			}
-		
-			//给时间戳到临时时间端点
-			if ( 0 > strncmp(szTempTimePoint, szFileTimeStamp, 14)) //大者写入
-			{
-				strcpy(szTempTimePoint, szFileTimeStamp);
-			}
-		}	
+        }	
 	}
     else
     {
@@ -2131,8 +2150,8 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
         goto Exit_Pro;
     }
 
-    //清理	
-	if ( strncmp(szTimePoint, szTempTimePoint ,14) <= 0 )
+    //清理保存工作	
+	if ( strncmp(szCollectStartTime, szTimePoint ,14) < 0 )
 	{
 		if (pFileTimePoint != NULL)
 		{
@@ -2147,7 +2166,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			nRet = 1;
 			goto Exit_Pro;
 		}
-		fprintf(pFileTimePoint, "%s", szTempTimePoint);
+		fprintf(pFileTimePoint, "%s", szTimePoint);
 		fclose(pFileTimePoint);
 		pFileTimePoint = NULL;
 	}
