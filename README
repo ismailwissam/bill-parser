@@ -1,0 +1,70 @@
+1 制作者：王晓辉(wangxiaohui@boco.com.cn)
+  
+2 适用范围：
+   运营商：浙江移动
+   业务范围：话单解析
+   版本 ：1.0
+
+3 安装步骤：
+  a) 将此安装包拷贝到部署服务器任一目录下,并解开
+
+  d) 配置文件
+     在调用安装程序前，可修改'setup.cfg'文件，也可在安装提问时逐项回答，
+     但'setup.cfg'文件中的参数，不能删除。setup.cfg文件的参数说明如下：
+        BILL_PARSER_HOME   ：话单解析程序主目录
+        DB_SERVER   : 数据库TNS连接符
+        DB_USER   : 数据库用户
+        DB_PASSWD : 数据库密码
+
+     
+  c) 安装
+     调用以下脚本，并逐项回答问题，如采用提示的缺省值，则直接输入回车即可。
+     setup.sh
+     
+	 
+  注意事项：
+     如果在同一服务器上进行多次安装，会在crontab配置中多次追加相同的定时配置，
+     多余的配置请手工删除
+      
+
+4 使用说明
+  a) 通过总控程序controller一次启动所有进程
+
+     切换到release/controller目录
+
+     执行start_controller脚本，同时启动采集、解析、入库进程
+
+     执行stop_controller脚本，同时终止采集、解析、入库进程
+
+     总控程序controller会在后台监控三个进程的运行，如果其中一个异常退出，总控程序会自动启动它
+
+  b) 不通过总控程序一次启动所有进程
+
+     切换到release目录
+
+     执行start_all脚本，同时启动采集、解析、入库进程
+
+     执行stop_all脚本，同时终止采集、解析、入库进程
+
+  c) 单独启动采集、解析、入库进程
+   
+     切换到release/collect目录
+     执行start_collect脚本启动采集进程
+     执行stop_collect脚本终止采集进程
+
+     切换到release/pretreat目录
+     执行start_pretreat脚本启动解析进程
+     执行stop_pretrat脚本终止解析进程
+
+     切换到release/insert目录
+     执行start_insert脚本启动入库进程
+     执行stop_insert脚本终止入库进程
+
+  d) 启动补采程序
+     
+     切换到release/recollector目录
+     执行start_recollector启动补采进程
+     执行stop_recollector终止补采进程
+
+清理程序和日志解析程序自动在crontab中配置定时自动启动
+     
