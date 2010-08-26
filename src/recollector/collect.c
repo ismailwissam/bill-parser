@@ -2115,7 +2115,7 @@ static int commit_file(collect_conf * p_collect_conf, const char * remote_file_n
         /* 如果文件以gz开头,则进行解压 */
         if( 'g' == remote_file_name[0] && 'z' == remote_file_name[1] )
         {
-            sprintf(szCommand, "gzip -S .dat -d %s", tmp_file_name);
+            sprintf(szCommand, "gzip -f -d -S .dat %s", tmp_file_name);
             if(system(szCommand) == -1)
             {
                 err_log("commit_file: uncompress %s fail\n", tmp_file_name);
