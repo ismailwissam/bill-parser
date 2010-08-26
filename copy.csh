@@ -26,10 +26,6 @@ if ( -d $BILL_PARSER_HOME/data ) rm -rf $BILL_PARSER_HOME/data
 if ( -d $BILL_PARSER_HOME/release ) rm -rf $BILL_PARSER_HOME/release
 /bin/cp -r $INSTALL_PATH/release $BILL_PARSER_HOME
 
-#copy src dir
-if ( -d $BILL_PARSER_HOME/src ) rm -rf $BILL_PARSER_HOME/src
-/bin/cp -r $INSTALL_PATH/src $BILL_PARSER_HOME
-
 # chmod excutable flag of scripts
 chmod +x $BILL_PARSER_HOME/release/start_all
 chmod +x $BILL_PARSER_HOME/release/stop_all
@@ -47,7 +43,4 @@ chmod +x $BILL_PARSER_HOME/release/pretreat/start_pretreat
 chmod +x $BILL_PARSER_HOME/release/pretreat/stop_pretreat
 chmod +x $BILL_PARSER_HOME/release/recollector/start_recollector
 chmod +x $BILL_PARSER_HOME/release/recollector/stop_recollector
-
-chmod +x $BILL_PARSER_HOME/src/build_all
-chmod +x $BILL_PARSER_HOME/src/clean_all
 

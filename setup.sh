@@ -1,5 +1,12 @@
 #!/bin/csh
 
+#build the source
+set CUR_DIR=`pwd`
+cd $CUR_DIR/src
+chmod +x build_all
+build_all
+cd $CUR_DIR
+
 #mkdir tmp dir
 mkdir -p tmp
 
@@ -25,17 +32,10 @@ mv -f tmp/start_log_parser ./release/log_parser/start_log_parser
 mv -f tmp/start_log_parser_realtime ./release/log_parser/start_log_parser_realtime
 mv -f tmp/start_recollector ./release/recollector/start_recollector
 
-# rmdir tmp dir
-rm -rf tmp 
-
-#add crontab info to current user crontab list
-crontab (crontab -l >> crontab.txt)
-
 #copy file
 chmod +x copy.csh
 copy.csh $BILL_PARSER_HOME
 
-#build the source
-cd $BILL_PARSER_HOME/src
-sh build_all
+#add crontab info to current user crontab list
+crontab (crontab -l >> crontab.txt)
 

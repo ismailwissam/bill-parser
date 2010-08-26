@@ -596,7 +596,6 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 	if(nRetVal == PARSE_UNMATCH) 
 	{
 		/*collect.conf配置文件中,该行以#开头,不处理直接跳出*/
-		nRet = 2;		
 		goto Exit_Pro;
 	}
 
@@ -617,10 +616,9 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
         {
             strcpy(szCollectStartTime, curCollectConf.start_time);
         }
-        else if(strncmp(szCollectStartTime, curCollectConf.end_time, 14) > 0)
+        else if(strncmp(szCollectStartTime, curCollectConf.end_time, 14) >= 0)
         {
-            /* 超过了设置的采集结束时间，退出采集任务 */
-            nRet = 3;
+            /* 达到了设置的采集结束时间，退出采集任务 */
             goto Exit_Pro;
         }
     }
@@ -829,13 +827,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果话单文件的生成时间小于采集开始时间，则不下载，获取下一个话单文件
-				if(strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+				if(strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0)
 				{
 					continue;	
 				}
 
-                //如果话单文件的生成时间大于采集结束时间，并退出本此采集
-                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
+                //如果话单文件的生成时间大于或等于采集结束时间，退出本此采集
+                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) >= 0)
                 {
                     break;
                 }
@@ -1067,13 +1065,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果话单文件的生成时间小于采集开始时间，则不下载，获取下一个话单文件
-				if(strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+				if(strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0)
 				{
 					continue;	
 				}
 
                 //如果话单文件的生成时间大于采集结束时间，则退出本此采集
-                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
+                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) >= 0)
                 {
                     break;
                 }
@@ -1312,13 +1310,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果话单文件的生成时间小于采集开始时间，则不下载，判断下一个话单文件
-				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0)
 				{
 					continue;	
 				}
 
                 //如果话单文件的生成时间大于采集结束时间，则退出本此下载
-                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
+                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) >= 0)
                 {
                     break;
                 }
@@ -1557,13 +1555,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果话单文件的生成时间小于采集开始时间，则不下载，判断下一个话单文件
-				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0)
 				{
 					continue;	
 				}
 
                 //如果话单文件的生成时间大于采集结束时间，则退出本此下载
-                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
+                if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) >= 0)
                 {
                     break;
                 }
@@ -1705,13 +1703,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			}
 
             //如果话单文件的生成时间小于采集开始时间，则不下载，判断下一个
-			if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+			if (strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0)
 			{
 				continue;	
 			}
 
             //如果话单文件的生成时间大于采集结束时间，则退出本此下载
-            if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) > 0)
+            if(strncmp(szFileTimeStamp, curCollectConf.end_time, 14) >= 0)
             {
                 break;
             }
@@ -1775,7 +1773,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
     }
 
     //清理	
-	if (strncmp(szCollectStartTime, szTimePoint ,14) < 0)
+	if (strncmp(szCollectStartTime, szTimePoint ,14) <= 0)
 	{
 		if (pFileTimePoint != NULL)
 		{
