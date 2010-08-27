@@ -9,12 +9,13 @@ collect: 话单采集程序，从配置的Ftp服务器上下载话单文件到本地。
 2.程序调用参数
   collect  [-o bill_commit_path] [-r run_path] [-R recollect_run_path] 
 		   [-p parallel_child_number] [-m adjust_minute] [-d]
-  	       -o bill commit path, default is ./data/collect
-  	       -r collect program run path, default is ./
-		   -R recollect program run path, must not set
-  	       -p the parallel child number, default is 1
-		   -m adjust minuate, default is 0
-  	       -d enable debug mode
+  	       -o bill_commit_path: 话单文件的提交目录，默认为./data/collect
+  	       -r run_path: 采集程序的运行目录，默认为./
+               -R recollect_run_path: 补采程序的运行目录，可以不设置；如果不设置，将不会自动产生补采记录
+  	       -p parallel_child_number: 设置采集进程的最大数目，默认为1
+               -m adjust_minuate: 设置采集开始时间的调整参数，单位为分钟。如果为正数，时间向后调整；
+                                  如果为负数，时间向前调整
+  	       -d 启动调试模式
 		   
 3.配置文件说明
 （1）./conf/collect.conf 采集配置
@@ -49,8 +50,8 @@ cc*dd cc开头并且dd结尾的文件
 4.日志文件说明
 （1）运行日志
 	文件：collect_run.%网元名称%.%日期%
-	内容：采集点编号 网元名称 采集目录 采集文件 文件大小 生成时间 采集时间 是否备份 是否提交
-	示例： <000001>  hzgs2 20100629 gzX3KM0740000003972_tdhzgs20834.dat 1276131  20100629104800 20100629114744 1  1
+	内容：采集点编号 网元名称 网元IP 采集目录 采集文件名 本地文件名 文件大小 生成时间 采集时间 是否备份 是否提交
+	示例： <000001>  hzgs2 10.211.112.199 20100629 gzX3KM0740000003972_tdhzgs20834.dat 000001_hw_hzgs2_20100629104800_gzX3KM0740000003972_tdhzgs20834.dat 1276131  20100629104800 20100629114744 1  1
 
 （2）错误日志
 	文件：collect_err.%采集进程号%

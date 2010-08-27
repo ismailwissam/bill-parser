@@ -1278,7 +1278,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果话单文件的生成时间小于开始采集时间，则略过判断下一个
-				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0 )
+				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0 )
 				{
 					continue;	
 				}
@@ -1499,7 +1499,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果文件时间戳小于开始采集时间，则略过该话单判断下一个
-				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0 )
+				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0 )
 				{
 					continue;	
 				}
@@ -1726,7 +1726,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果文件时间戳小于开始采集时间，则略过该话单判断下一个
-				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0 )
+				if ( strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0 )
 				{
 					continue;	
 				}
@@ -1954,7 +1954,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 				}
 
                 //如果话单文件时间戳小于开始采集时间，则略过该话单判断下一个
-				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+				if (strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0)
 				{
 					continue;	
 				}
@@ -2086,13 +2086,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 			}
 	
 			//保存时间戳到临时时间端点
-			if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0) //大者写入
+			if (strncmp(szTimePoint, szFileTimeStamp, 14) < 0)
 			{
 				strcpy(szTimePoint, szFileTimeStamp);
 			}
 
             //如果话单生成时间戳小于开始采集时间，则略过该话单判断下一个
-			if (strncmp(szFileTimeStamp, szCollectStartTime, 14) < 0)
+			if (strncmp(szFileTimeStamp, szCollectStartTime, 14) <= 0)
 			{
 				continue;	
 			}
@@ -2151,7 +2151,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
     }
 
     //清理保存工作	
-	if ( strncmp(szCollectStartTime, szTimePoint ,14) < 0 )
+	if ( strncmp(szCollectStartTime, szTimePoint, 14) <= 0 )
 	{
 		if (pFileTimePoint != NULL)
 		{
