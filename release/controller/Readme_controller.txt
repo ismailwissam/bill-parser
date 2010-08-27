@@ -10,7 +10,7 @@ controller: 话单解析主控程序，负责对采集、解析、入库进程的管理。
   
 2.程序参数说明
 controller [-r run_path]
-  	       -r run_path: 设置主控程序的运行目录，默认为./
+  	    -r run_path: 主控程序的运行目录，默认为./
   
 3.配置文件说明
 （1）./conf/controller.conf: 主控程序配置文件
@@ -27,3 +27,7 @@ insert_run_path=%入库程序的运行目录%
 
 4.日志文件说明
 （1）./log/controller_err: 错误日志
+内容：
+   -------------------------------------------------------
+   发生时间         Wed May 19 11:16:16 2010
+   错误信息         main: log dir no exist.
