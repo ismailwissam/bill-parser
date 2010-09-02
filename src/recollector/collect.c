@@ -38,7 +38,6 @@
 #include "Ftp.h"
 #include "common.h"
 #include "collect.h"
-#include "hashtable.h"
 
 /************************************************************************/
 /* 宏定义 */
@@ -49,8 +48,7 @@
 #define      MAX_FTP_USER        32
 #define      MAX_FTP_PWD         32
 #define      FTP_TIME_OUT        300
-#define      MAX_KEY             7
-#define      MAX_VALUE           4
+#define      MAX_COLLECT_STATUS  10
 #define      PREFIX_RUN_LOG_FILE "./log/collect_run"
 
 /************************************************************************/
@@ -141,9 +139,7 @@ static void collect_task(void)
 	t_child_process_status oChildProcessStatus[MAX_CHILD_PROCESS];
 	pid_t   pidChild;
 	pid_t   pidReValWait;
-
-    /* 初始化hash表 */
-    hashtable_init();
+    BOOL    bAllCollectProcessIdle;
 
     /* 矫正采集进程数目 */
 	if(collect_parallel_num<=0)                collect_parallel_num=1;
@@ -198,8 +194,19 @@ static void collect_task(void)
 			}
 		}
 	
+        /* 判断是否所有解析进程都已经回收 */
+        bAllCollectProcessIdle = TRUE;
+		for(i = 0; i < collect_parallel_num; i++)
+		{
+			if(oChildProcessStatus[i].pid > 0)
+			{
+                bAllCollectProcessIdle = FALSE;
+                break;
+			}
+		}
+
         /* 检测所有采集点是否完成采集 */
-        if(detect_all_collect_point_finished())
+        if(bAllCollectProcessIdle && detect_all_collect_point_finished())
         {
             break;
         }
@@ -215,9 +222,6 @@ static void collect_task(void)
 			}
 		}
 	}
-
-    /* 清理hash表 */
-    hashtable_destroy();
 }
 
 /************************************************************************/
@@ -2302,8 +2306,6 @@ static BOOL detect_all_collect_point_finished(void)
       
         if(status_code != COLLECT_DONE)
         {
-            err_log("detect_all_collect_point_finished: collect_point: %s, status: %d\n",
-                    &szContent[0][1], status_code);
             ret = FALSE;
             goto Exit_Pro;
         }
@@ -2318,32 +2320,51 @@ Exit_Pro:
 //获取指定采集点的采集状态
 static collect_status_e get_collect_point_status(int collect_point)
 {
-    char key[MAX_KEY];
-    const char * value;
+    collect_status_e ret = COLLECT_UNSET;
+    char szStatusFile[MAX_FILENAME];
+    char buff[MAX_COLLECT_STATUS];
+    FILE *fp = NULL;
 
-    memset(key, 0, sizeof(key));
-    sprintf(key, "%06d", collect_point);
-    value = hashtable_value(key);
+    sprintf(szStatusFile, "%s/%06d_CollectStatus", WORK_DIR, collect_point);
 
-    if(value != NULL)
-        return atoi(value);
-    else
-        return COLLECT_UNSET;
+    fp = fopen(szStatusFile, "r");
+    if(fp == NULL)
+    {
+        ret = COLLECT_UNSET;
+        goto Exit_Pro;
+    }
+
+    if(fgets(buff, MAX_BUFFER, fp) == NULL)
+    {
+        ret = COLLECT_UNSET;
+        goto Exit_Pro;
+    }
+
+    ret = atoi(buff);
+
+Exit_Pro:
+    if(fp != NULL)
+        fclose(fp);
+    return ret;
 }
 
 //设置指定采集点的采集状态
 static void set_collect_point_status(int collect_point, collect_status_e status_code)
 {
-    char key[MAX_KEY];
-    char value[MAX_VALUE];
+    char szStatusFile[MAX_FILENAME];
+    char status[MAX_COLLECT_STATUS];
+    FILE *fp = NULL;
 
-    memset(key, 0, sizeof(key));
-    memset(value, 0, sizeof(value));
-    sprintf(key, "%06d", collect_point);
-    sprintf(value, "%d", status_code);
+    sprintf(szStatusFile, "%s/%06d_CollectStatus", WORK_DIR, collect_point);
 
-    err_log("key: %s, value: %s\n", key, value);
+    fp = fopen(szStatusFile, "w");
+    if(fp == NULL)
+        return;
 
-    hashtable_insert(key, value);
+    sprintf(status, "%d", status_code);
+    fputs(status, fp);
+
+    if(fp != NULL)
+        fclose(fp);
 }
 

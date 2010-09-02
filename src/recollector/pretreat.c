@@ -60,7 +60,6 @@
 #define      MAX_FILE_ELEM_NUM      10
 #define      MAX_FILE_ELEM          64
 #define      PREFIX_RUN_LOG_FILE    "./log/pretreat_run"
-#define      DELAY_TIMES            180
 
 /* type definition */
 typedef int funHandler(char *, char *, int *);  //in_file_name, out_file_name, rec_num
@@ -73,7 +72,7 @@ typedef struct {
 
 /* global variant definition */
 t_module     module[MAX_MODULE];
-BOOL         is_collect_finished = FALSE;
+BOOL         is_collect_task_finished = FALSE;
 
 /* funtion definition */
 static int          pretreat_task(void);
@@ -87,6 +86,7 @@ static int          valid_in_file_name(const char * in_file_name);
 static int          get_commit_filename(const char * out_file_name, char * ret_commit_filename);
 static int          get_backup_filename(const char * out_file_name, char * ret_backup_filename);
 static int          get_ne_name(const char * original_file_name, char * ret_ne_name);
+static BOOL         is_no_bill_files(void);
 static void         sigusr1_handler(int signum);
 
 int start_pretreat_task(void)
@@ -113,8 +113,7 @@ static int pretreat_task(void)
 	pid_t      childpid;
 	pid_t      r_waitpid;
     t_child_process_status child_process_status[MAX_CHILD_PROCESS];
-    BOOL       is_all_child_process_idle;
-    int        delay_times = 0;
+    BOOL       is_all_pretreat_process_idle;
 
     /* 注册SIGUSR1信号量 */
     if(signal(SIGUSR1, &sigusr1_handler) == SIG_ERR)
@@ -199,24 +198,18 @@ static int pretreat_task(void)
 		}
 		
         /* 判断是否所有解析进程都已经回收 */
-        is_all_child_process_idle = TRUE;
+        is_all_pretreat_process_idle = TRUE;
 		for(i = 0; i<pretreat_parallel_num; i++)
 		{
 			if(child_process_status[i].pid > 0)
 			{
-                is_all_child_process_idle = FALSE;
-                delay_times = 0;   //reset to 0
+                is_all_pretreat_process_idle = FALSE;
                 break;
 			}
 		}
 
         /* 如果采集任务已经结束，并且所有解析进程都已经空闲，退出解析任务 */
-        if(is_collect_finished && is_all_child_process_idle)
-        {
-            delay_times++;
-        }
-
-        if(delay_times == DELAY_TIMES)
+        if(is_collect_task_finished && is_all_pretreat_process_idle && is_no_bill_files())
         {
             break;
         }
@@ -1228,8 +1221,41 @@ static void sigusr1_handler(int signum)
 {
     if(signum == SIGUSR1)
     {
-        printf("get SIGUSR1 signal\n");
-        is_collect_finished = TRUE;
+        is_collect_task_finished = TRUE;
     }
+}
+
+static BOOL is_no_bill_files(void)
+{
+    BOOL is_no_bill_files = TRUE;
+	DIR *pdir = NULL;
+	struct dirent *	 pdirent;
+    int  count = 0;
+
+	pdir = opendir(collect_dir);
+	if(pdir == NULL)
+	{
+		err_log("is_no_bill_files: opendir fail: %s\n", collect_dir);
+		is_no_bill_files = FALSE;
+		goto Exit_Pro;	
+	}
+
+	while( (pdirent=readdir(pdir)) != NULL )
+	{
+        /* 前后缀匹配检查 */
+		if(pre_suf_check(pdirent->d_name, NULL, ".dat") != PARSE_MATCH 
+          || pre_suf_check(pdirent->d_name, NULL, ".DAT") != PARSE_MATCH)
+			continue;
+
+        count++;
+    }
+
+    if(count > 0)
+        is_no_bill_files = FALSE;
+
+Exit_Pro:
+    if(pdir != NULL)
+        closedir(pdir);
+    return is_no_bill_files;
 }
 
