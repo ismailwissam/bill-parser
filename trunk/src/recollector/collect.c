@@ -17,6 +17,10 @@
 /* modify by wangxiaohui at 2010.8                                        */
 /*     针对两个不能正常Ftp采集的网元hzgs4和tzhds2，Ftp的传输模式从passive */
 /*     模式修改为port模式。                                               */
+/*                                                                        */
+/*     用hash表结构来标识采集点的结束采集，当采集的话单文件的生成时间达到 */
+/*     设定的采集点结束时间时，就在在hash表中记录该采集点，最终通过查询该 */
+/*     hash表来判断是否所有采集点都已经采集完毕                           */
 /**************************************************************************/
 
 /************************************************************************/
@@ -34,6 +38,7 @@
 #include "Ftp.h"
 #include "common.h"
 #include "collect.h"
+#include "hashtable.h"
 
 /************************************************************************/
 /* 宏定义 */
@@ -44,11 +49,21 @@
 #define      MAX_FTP_USER        32
 #define      MAX_FTP_PWD         32
 #define      FTP_TIME_OUT        300
+#define      MAX_KEY             7
+#define      MAX_VALUE           4
 #define      PREFIX_RUN_LOG_FILE "./log/collect_run"
 
 /************************************************************************/
 /* 结构体定义 */
 /************************************************************************/
+
+/* 采集状态 */
+typedef enum collect_status {
+    COLLECT_UNSET,
+    COLLECT_POLL,
+    COLLECT_DONE,
+} collect_status_e;
+
 //FTP采集信息
 typedef struct {
 	//采集点编号
@@ -99,6 +114,9 @@ static int			backup_file(collect_conf * p_collect_conf, const char * remote_file
 static int			commit_file(collect_conf * p_collect_conf, const char * remote_file_name, const char* lpTimeStamp);
 static int			get_backup_name(collect_conf * pCollectConf, const char * szRemoteFileName, const char* lpTimeStamp, char * szBackupName);
 static int			run_log(collect_conf * p_collect_conf, const char * remote_path, const char * remote_file_name, long file_size, const char* lpTimeStamp);
+static BOOL         detect_all_collect_point_finished(void);
+static collect_status_e get_collect_point_status(int collect_point);
+static void         set_collect_point_status(int collect_point, collect_status_e status_code);
 
 /************************************************************************/
 /* 入口函数*/
@@ -123,8 +141,11 @@ static void collect_task(void)
 	t_child_process_status oChildProcessStatus[MAX_CHILD_PROCESS];
 	pid_t   pidChild;
 	pid_t   pidReValWait;
-    BOOL    bAllCollectProcessIdle;
 
+    /* 初始化hash表 */
+    hashtable_init();
+
+    /* 矫正采集进程数目 */
 	if(collect_parallel_num<=0)                collect_parallel_num=1;
 	if(collect_parallel_num>MAX_CHILD_PROCESS) collect_parallel_num=MAX_CHILD_PROCESS;
     if(collect_parallel_num>collect_point_num) collect_parallel_num=collect_point_num;
@@ -146,7 +167,7 @@ static void collect_task(void)
 					err_log("main: fork error\n");
 					exit(1);
 				}
-				else if(pidChild>0)     /**/ 
+				else if(pidChild>0)     /*parent process*/ 
 				{
 					oChildProcessStatus[i].pid        = pidChild;
 					oChildProcessStatus[i].sleep_time = PROCESS_SLEEP_TIME;
@@ -158,7 +179,7 @@ static void collect_task(void)
 				}
 			}
 		}
-		
+
 		/*回收子进程*/
 		for(i=0;i<collect_parallel_num;i++)
 		{
@@ -176,20 +197,9 @@ static void collect_task(void)
 				}
 			}
 		}
-		
-        /* 判断是否所有采集进程都已经回收 */
-        bAllCollectProcessIdle = TRUE;
-        for(i=0;i<collect_parallel_num;i++)
-        {
-            if(oChildProcessStatus[i].pid > 0) 
-            {
-                bAllCollectProcessIdle = FALSE;
-                break;
-            }
-        }
-
-        /* 如果所有采集进程都已空闲，则退出采集任务 */
-        if(bAllCollectProcessIdle)
+	
+        /* 检测所有采集点是否完成采集 */
+        if(detect_all_collect_point_finished())
         {
             break;
         }
@@ -205,6 +215,9 @@ static void collect_task(void)
 			}
 		}
 	}
+
+    /* 清理hash表 */
+    hashtable_destroy();
 }
 
 /************************************************************************/
@@ -593,11 +606,22 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 		nRet = 1;
 		goto Exit_Pro;
 	}
+
+    /*collect.conf配置文件中,该行以#开头,不处理直接跳出*/
 	if(nRetVal == PARSE_UNMATCH) 
 	{
-		/*collect.conf配置文件中,该行以#开头,不处理直接跳出*/
 		goto Exit_Pro;
 	}
+
+    //判断该采集点是否已经采集完成
+    //如果已经完成直接结束
+    if(get_collect_point_status(curCollectConf.collect_point) == COLLECT_DONE)
+    {
+        goto Exit_Pro;
+    }
+
+    //设置采集点的采集状态
+    set_collect_point_status(curCollectConf.collect_point, COLLECT_POLL);
 
 	//获取采集开始时间
 	sprintf(szTimePointFile, "%s/%s[%s]_TimePoint", WORK_DIR, curCollectConf.device, curCollectConf.ip);
@@ -619,6 +643,7 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
         else if(strncmp(szCollectStartTime, curCollectConf.end_time, 14) >= 0)
         {
             /* 达到了设置的采集结束时间，退出采集任务 */
+            set_collect_point_status(curCollectConf.collect_point, COLLECT_DONE);
             goto Exit_Pro;
         }
     }
@@ -2229,5 +2254,96 @@ int archive_collect_conf(void)
     }
     
     return 0;
+}
+
+//判断是否所有采集点都已经采集完成
+static BOOL detect_all_collect_point_finished(void)
+{
+    BOOL          ret = TRUE;
+	FILE         *pFile=NULL;
+	char          szTempFileName[MAX_FILENAME];
+	char	      szBuff[MAX_LONG_BUFFER];
+	char          szContent[14][MAX_FILENAME];
+    collect_status_e status_code;
+	
+	sprintf(szTempFileName,"%s/%s",CONF_DIR, COLLECT_CONF);
+	pFile = fopen(szTempFileName,"r");
+	if(pFile == NULL)
+	{
+		err_log("detect_all_collect_point_finished: fopen %s fail\n",szTempFileName);
+        return FALSE;
+	}
+	
+	while(1)
+	{
+		memset(szBuff,0,sizeof(szBuff));
+		if(fgets(szBuff,sizeof(szBuff),pFile)==NULL)
+		{
+            break;
+		}
+
+        if(szBuff[0] == '#')
+        {
+            continue;
+        }
+        
+        memset(szContent,0,sizeof(szContent));
+        if( sscanf(szBuff,"%s%s%s%s%s%s%s%s%s%s%s%s%s%s",szContent[0],szContent[1],szContent[2],szContent[3],szContent[4],\
+            szContent[5],szContent[6],szContent[7],szContent[8],szContent[9],szContent[10],szContent[11],szContent[12],szContent[13]) != 14 )
+        {
+            err_log("detect_all_collect_point_finished: collec.conf file format incorrect: %s\n",szTempFileName);
+            ret = FALSE;
+            goto Exit_Pro;
+        }
+
+        szContent[0][strlen(szContent[0]) - 1] = '\0';
+       
+        status_code = get_collect_point_status(atoi(&szContent[0][1]));
+      
+        if(status_code != COLLECT_DONE)
+        {
+            err_log("detect_all_collect_point_finished: collect_point: %s, status: %d\n",
+                    &szContent[0][1], status_code);
+            ret = FALSE;
+            goto Exit_Pro;
+        }
+	}
+
+Exit_Pro:	
+	if(pFile!=NULL)
+		fclose(pFile);
+	return ret;
+}
+
+//获取指定采集点的采集状态
+static collect_status_e get_collect_point_status(int collect_point)
+{
+    char key[MAX_KEY];
+    const char * value;
+
+    memset(key, 0, sizeof(key));
+    sprintf(key, "%06d", collect_point);
+    value = hashtable_value(key);
+
+    if(value != NULL)
+        return atoi(value);
+    else
+        return COLLECT_UNSET;
+}
+
+//设置指定采集点的采集状态
+static void set_collect_point_status(int collect_point, collect_status_e status_code)
+{
+    char key[MAX_KEY];
+    char value[MAX_VALUE];
+
+    memset(key, 0, sizeof(key));
+    memset(value, 0, sizeof(value));
+    sprintf(key, "%06d", collect_point);
+    sprintf(value, "%d", status_code);
+
+    err_log("key: %s, value: %s\n", key, value);
+
+    hashtable_insert(key, value);
 }
 

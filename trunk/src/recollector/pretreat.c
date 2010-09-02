@@ -60,6 +60,7 @@
 #define      MAX_FILE_ELEM_NUM      10
 #define      MAX_FILE_ELEM          64
 #define      PREFIX_RUN_LOG_FILE    "./log/pretreat_run"
+#define      DELAY_TIMES            180
 
 /* type definition */
 typedef int funHandler(char *, char *, int *);  //in_file_name, out_file_name, rec_num
@@ -113,6 +114,7 @@ static int pretreat_task(void)
 	pid_t      r_waitpid;
     t_child_process_status child_process_status[MAX_CHILD_PROCESS];
     BOOL       is_all_child_process_idle;
+    int        delay_times = 0;
 
     /* 注册SIGUSR1信号量 */
     if(signal(SIGUSR1, &sigusr1_handler) == SIG_ERR)
@@ -203,12 +205,18 @@ static int pretreat_task(void)
 			if(child_process_status[i].pid > 0)
 			{
                 is_all_child_process_idle = FALSE;
+                delay_times = 0;   //reset to 0
                 break;
 			}
 		}
 
         /* 如果采集任务已经结束，并且所有解析进程都已经空闲，退出解析任务 */
         if(is_collect_finished && is_all_child_process_idle)
+        {
+            delay_times++;
+        }
+
+        if(delay_times == DELAY_TIMES)
         {
             break;
         }
