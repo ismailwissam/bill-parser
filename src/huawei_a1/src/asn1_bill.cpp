@@ -266,7 +266,7 @@ HwA1MocBill::HwA1MocBill():HwA1Bill("华为ASN.1主叫话单")
     hwa1_NodeList.push_back(HwA1Node("alertingTime", new DynLenValue(), &hwa1_TimeFmt)); hwa1_TagMap[0x9F814A] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("answerTime", new DynLenValue(), &hwa1_TimeFmt)); hwa1_TagMap[0x97] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("releaseTime", new DynLenValue(), &hwa1_TimeFmt)); hwa1_TagMap[0x98] = loc_Idx++;
-    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntBEFmt)); hwa1_TagMap[0x99] = loc_Idx++;
+    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntLEFmt)); hwa1_TagMap[0x99] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("radioChanRequested", new DynLenValue(), &hwa1_UIntBEFmt)); hwa1_TagMap[0x9B] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("radioChanUsed", new DynLenValue(), &hwa1_UIntBEFmt)); hwa1_TagMap[0x9C] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("changeOfRadioChan", new DynLenValue(), &hwa1_DebugFmt)); hwa1_TagMap[0xBD] = loc_Idx++;
@@ -500,7 +500,7 @@ HwA1MtcBill::HwA1MtcBill():HwA1Bill("华为ASN.1被叫话单")
     hwa1_NodeList.push_back(HwA1Node("alertingTime", new DynLenValue(), &hwa1_TimeFmt)); hwa1_TagMap[0x9F814C] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("answerTime", new DynLenValue(), &hwa1_TimeFmt)); hwa1_TagMap[0x94] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("releaseTime", new DynLenValue(), &hwa1_TimeFmt)); hwa1_TagMap[0x95] = loc_Idx++;
-    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntBEFmt)); hwa1_TagMap[0x96] = loc_Idx++;
+    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntLEFmt)); hwa1_TagMap[0x96] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("radioChanRequested", new DynLenValue(), &hwa1_UIntBEFmt)); hwa1_TagMap[0x98] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("radioChanUsed", new DynLenValue(), &hwa1_UIntBEFmt)); hwa1_TagMap[0x99] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("changeOfRadioChan", new DynLenValue(), &hwa1_DebugFmt)); hwa1_TagMap[0xBA] = loc_Idx++;
@@ -679,7 +679,7 @@ HwA1TransitBill::HwA1TransitBill():HwA1Bill("华为ASN.1汇接话单")
     hwa1_NodeList.push_back(HwA1Node("seizureTime", new DynLenValue(), &hwa1_TimeFmt));   hwa1_TagMap[0x87] = loc_Idx++;     
     hwa1_NodeList.push_back(HwA1Node("answerTime", new DynLenValue(), &hwa1_TimeFmt));   hwa1_TagMap[0x88] = loc_Idx++;     
     hwa1_NodeList.push_back(HwA1Node("releaseTime", new DynLenValue(), &hwa1_TimeFmt));  hwa1_TagMap[0x89] = loc_Idx++;     
-    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntBEFmt));  hwa1_TagMap[0x8A] = loc_Idx++;     
+    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntLEFmt));  hwa1_TagMap[0x8A] = loc_Idx++;     
     hwa1_NodeList.push_back(HwA1Node("causeForTerm", new DynLenValue(), &hwa1_UIntBEFmt));  hwa1_TagMap[0x8C] = loc_Idx++;     
     hwa1_NodeList.push_back(HwA1Node("diagnostics", new DynLenValue(), &hwa1_DebugFmt));  hwa1_TagMap[0xAD] = loc_Idx++;     
     hwa1_NodeList.push_back(HwA1Node("callReference", new DynLenValue(), &hwa1_DebugFmt));  hwa1_TagMap[0x8E] = loc_Idx++;     
@@ -927,7 +927,7 @@ HwA1CfwBill::HwA1CfwBill():HwA1Bill("华为ASN.1前转话单")
     hwa1_NodeList.push_back(HwA1Node("seizureTime", new DynLenValue(), &hwa1_TimeFmt));   hwa1_TagMap[0x96] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("answerTime", new DynLenValue(), &hwa1_TimeFmt));   hwa1_TagMap[0x97] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("releaseTime", new DynLenValue(), &hwa1_TimeFmt));  hwa1_TagMap[0x98] = loc_Idx++;
-    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntBEFmt));  hwa1_TagMap[0x99] = loc_Idx++;
+    hwa1_NodeList.push_back(HwA1Node("callDuration", new DynLenValue(), &hwa1_UIntLEFmt));  hwa1_TagMap[0x99] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("radioChanRequested", new DynLenValue(), &hwa1_UIntBEFmt));  hwa1_TagMap[0x9B] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("radioChanUsed", new DynLenValue(), &hwa1_UIntBEFmt));  hwa1_TagMap[0x9C] = loc_Idx++;
     hwa1_NodeList.push_back(HwA1Node("changeOfRadioChan", new DynLenValue(), &hwa1_DebugFmt));  hwa1_TagMap[0xBD] = loc_Idx++;
