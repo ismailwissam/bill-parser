@@ -18,9 +18,8 @@
 /*     针对两个不能正常Ftp采集的网元hzgs4和tzhds2，Ftp的传输模式从passive */
 /*     模式修改为port模式。                                               */
 /*                                                                        */
-/*     用hash表结构来标识采集点的结束采集，当采集的话单文件的生成时间达到 */
-/*     设定的采集点结束时间时，就在在hash表中记录该采集点，最终通过查询该 */
-/*     hash表来判断是否所有采集点都已经采集完毕                           */
+/* modify by wangxiaohui at 2010.9                                        */
+/*     华为关口局新增两个网元：hzb3, hzb4。                               */
 /**************************************************************************/
 
 /************************************************************************/
@@ -670,7 +669,9 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 	sprintf(szFileListFile, "%s/%06d_FileList", WORK_DIR, curCollectConf.collect_point);
 
     //处理文件 
-	if (0 == strncmp("hzgs6", curCollectConf.device, 5) || 
+	if (0 == strncmp("hzb3", curCollectConf.device, 4) ||
+        0 == strncmp("hzb4", curCollectConf.device, 4) ||
+        0 == strncmp("hzgs6", curCollectConf.device, 5) || 
 		0 == strncmp("hzgs11", curCollectConf.device, 6) || 
 		0 == strncmp("hzgs20", curCollectConf.device, 6) || 
 		0 == strncmp("nbogs22", curCollectConf.device, 7) || 
@@ -838,10 +839,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                //因为新增的网元hzb3, hzb4上的话单文件是非压缩的，所以删除该判断条件
+                /*
                 if(strncmp(szContent[3], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//获取话单文件的生成时间戳
 				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
@@ -1076,10 +1080,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                /*
                 if(strncmp(szContent[3], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//获取话单文件的时间戳
 				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
@@ -1315,10 +1321,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                /*
                 if(strncmp(szContent[8], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//判断是否为文件信息
 				if ( '-' != szContent[0][0] ) //文件
@@ -1560,10 +1568,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                /*
                 if(strncmp(szContent[8], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//判断是否要下载
 				if ( '-' != szContent[0][0] ) //文件

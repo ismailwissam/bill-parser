@@ -13,6 +13,9 @@
 /* modify by wangxiaohui at 2010.8                                        */
 /*     解决两个不能正常Ftp采集的Msc：hzgs4, tzhds2。                      */
 /*     针对这两个网元，Ftp的传输模式由被动模式调整为主动模式，其他不变。  */
+/*                                                                        */
+/* modify by wangxiaohui at 2010.9                                        */
+/*     华为关口局新增两个网元：hzb3, hzb4                                 */
 /**************************************************************************/
 
 /************************************************************************/
@@ -1098,7 +1101,9 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
     }
 
     //处理文件 
-	if (0 == strncmp("hzgs6", curCollectConf.device, 5) || 
+	if (0 == strncmp("hzb3", curCollectConf.device, 4) ||
+        0 == strncmp("hzb4", curCollectConf.device, 4) ||
+        0 == strncmp("hzgs6", curCollectConf.device, 5) || 
 		0 == strncmp("hzgs11", curCollectConf.device, 6) || 
 		0 == strncmp("hzgs20", curCollectConf.device, 6) || 
 		0 == strncmp("nbogs22", curCollectConf.device, 7) || 
@@ -1260,10 +1265,13 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                //因为新增的网元hzb3, hzb4上的话单文件是非压缩的，所以删除该判断条件
+                /*
                 if(strncmp(szContent[3], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//获取话单文件生成时间戳
 				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
@@ -1481,10 +1489,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                /*
                 if(strncmp(szContent[3], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//获取话单文件生成时间戳
 				if (0 != convert_date_hw_sp6(szFileTimeStamp, szContent[1], szFileDateStamp))
@@ -1702,10 +1712,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                /*
                 if(strncmp(szContent[8], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//判断是否要下载
 				if ( '-' != szContent[0][0] ) //文件
@@ -1930,10 +1942,12 @@ static int point_collect(int nCollectPointNo,int nCurrentProcessNo)
 					continue;
 
                 //如果是旧的话单文件，就不再下载
+                /*
                 if(strncmp(szContent[8], "gz", 2) != 0)
                 {
                     continue;
                 }
+                */
 
 				//判断是否文件信息
 				if ( '-' != szContent[0][0] ) //文件
